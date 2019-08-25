@@ -1,6 +1,6 @@
 import Classess.GitManager;
-import com.fxgraph.graph.Graph;
-import com.fxgraph.graph.PannableCanvas;
+//import com.fxgraph.graph.Graph;
+//import com.fxgraph.graph.PannableCanvas;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -34,23 +34,23 @@ public class Main extends Application {
         // set stage
         primaryStage.setTitle("MAGit");
         Scene scene = new Scene(root, 1050, 600);
-
-        Graph tree = new Graph();
-
-        ScrollPane scrollPane = (ScrollPane) scene.lookup("#pane");
-        PannableCanvas canvas = tree.getCanvas();
-        //canvas.setPrefWidth(100);
-        //canvas.setPrefHeight(100);
-        scrollPane.setContent(canvas);
-
+//
+//        Graph tree = new Graph();
+//
+//        ScrollPane scrollPane = (ScrollPane) scene.lookup("#pane");
+//        PannableCanvas canvas = tree.getCanvas();
+//        //canvas.setPrefWidth(100);
+//        //canvas.setPrefHeight(100);
+//        scrollPane.setContent(canvas);
+//
 
         primaryStage.setScene(scene);
         primaryStage.show();
 
-        Platform.runLater(() -> {
-            tree.getUseViewportGestures().set(false);
-            tree.getUseNodeGestures().set(false);
-        });
+//        Platform.runLater(() -> {
+//            tree.getUseViewportGestures().set(false);
+//            tree.getUseNodeGestures().set(false);
+      //  });
     }
 
     public static void main(String[] args) {

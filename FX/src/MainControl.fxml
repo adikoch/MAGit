@@ -35,7 +35,7 @@
                         </Menu>
                         <Menu mnemonicParsing="false" text="Commit">
                             <items>
-                                <MenuItem fx:id="ShowCommitsInfo" mnemonicParsing="false" onAction="#ShowHistoryOfActiveBranchOnAction" text="Show commits info" />
+                                <MenuItem fx:id="ShowCommitsInfo" mnemonicParsing="false" onAction="#ShowCommitsInfoOnAction" text="Show commits info" />
                                 <MenuItem fx:id="ShowStatus" mnemonicParsing="false" onAction="#ShowStatusOnAction" text="Show Status" />
                                 <MenuItem fx:id="Commit" mnemonicParsing="false" onAction="#CommitOnAction" text="Commit" />
                             </items>

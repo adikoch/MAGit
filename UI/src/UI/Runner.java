@@ -1,6 +1,6 @@
 package UI;
 
-import Classess.Branch;
+import Classess.*;
 import Classess.Commit;
 import Classess.Folder;
 import Classess.GitManager;

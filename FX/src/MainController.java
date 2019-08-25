@@ -4,7 +4,11 @@ import Classess.GitManager;
 import com.fxgraph.graph.Graph;
 import com.fxgraph.graph.ICell;
 import com.fxgraph.graph.Model;
+import com.fxgraph.graph.Graph;
+import com.fxgraph.graph.ICell;
+import com.fxgraph.graph.Model;
 import commitTree.layout.CommitTreeLayout;
+//import commitTree.node.CommitNode;
 import commitTree.node.CommitNode;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
@@ -217,7 +221,19 @@ public class MainController {
 
     }
 
-
+    @FXML
+    public void ShowCommitsInfoOnAction(){
+        if (manager.getGITRepository() == null) {
+            popUpMessage("There is no repository defined, no files to show");
+            return;
+        }
+        try {
+            String s = manager.showFilesOfCommit();
+            popUpMessage(s);
+        } catch (Exception e) {
+            popUpMessage("Unable to generate folder from commit object");
+        }
+    }
 
     @FXML
     public void ShowHistoryOfActiveBranchOnAction() {
@@ -262,7 +278,7 @@ public class MainController {
             return;
         }
 
-        String absolutePath = selectedFile.getAbsolutePath();
+        String absolutePath = selectedFile.getAbsolutePath().toLowerCase();
 
 
         //popUpTextBox("Please enter the path to import xml from: ");
