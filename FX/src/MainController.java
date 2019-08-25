@@ -4,20 +4,16 @@ import Classess.GitManager;
 import com.fxgraph.graph.Graph;
 import com.fxgraph.graph.ICell;
 import com.fxgraph.graph.Model;
-import commitTree.layout.CommitTreeLayout;
-import commitTree.node.CommitNode;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
@@ -53,8 +49,16 @@ public class MainController {
     @FXML MenuItem CheckOut;
     @FXML MenuItem ResetBranch;
     @FXML GridPane root;
+    @FXML Label CommitInformation;
+    @FXML ScrollPane CommitTree;
+    @FXML Label RepName;
+    @FXML Label RepPath;
 
 
+
+/*
+*
+* */
 
 
 
@@ -72,8 +76,6 @@ public class MainController {
         RepositoryName = new SimpleStringProperty();
         RepositoryPAth = new SimpleStringProperty();
 
-
-
     }
 
     public void createCommits(Graph graph) {
@@ -88,9 +90,9 @@ public class MainController {
             Classess.Commit c = (Commit) thisEntry.getValue();
             String fatherSHA =  c.getSHA1PreveiousCommit();
             Commit fatherCommit = manager.getGITRepository().getCommitMap().get(fatherSHA);
-            ICell ic1 = new CommitNode(c.getCreationDate(), c.getChanger(), c.getDescription());
+            //ICell ic1 = new CommitNode(c.getCreationDate(), c.getChanger(), c.getDescription());
 //            ICell ic2 = new CommitNode(fatherCommit.getCreationDate(), fatherCommit.getChanger(),fatherCommit.getDescription());
-            model.addCell(ic1);
+            //model.addCell(ic1);
 //            model.addCell(ic2);
 //            final Edge edgeC12 = new Edge(ic1,ic2);
 //            model.addEdge(edgeC12);
@@ -113,11 +115,12 @@ public class MainController {
 //
         graph.endUpdate();
 
-        graph.layout(new CommitTreeLayout());
+      //  graph.layout(new CommitTreeLayout());
     }
 
-    public void initialize() throws IOException {
-
+    public void initialize()  {
+        RepName.textProperty().bind(RepositoryName);
+        RepPath.textProperty().bind(RepositoryPAth);
 
     }
 
@@ -200,7 +203,7 @@ public class MainController {
 
 
 
-                root.getChildren().addAll(repInfo, starting ,deleted , added, updated, closeButton);
+                root.getChildren().addAll(starting, repInfo  ,deleted , added, updated, closeButton);
 
                 Scene scene = new Scene(root, 500, 120, Color.WHITE);
                 popUpWindow.setTitle("Submit description");
@@ -228,6 +231,19 @@ public class MainController {
         try {
             String historyOfActiveBranch = manager.ShowHistoryActiveBranch();
             popUpMessage(historyOfActiveBranch);
+        } catch (Exception e) {
+            popUpMessage("Opening zip file failed");
+        }
+    }
+
+    public void ShowCommitFilesOnAction() {
+        if (manager.getGITRepository() == null) {
+            popUpMessage("There is no repository defined, therefor no active branch defined");
+            return;
+        }
+        try {
+            String FilesOfCommit = manager.showFilesOfCommit();
+            popUpMessage(FilesOfCommit);
         } catch (Exception e) {
             popUpMessage("Opening zip file failed");
         }
@@ -263,6 +279,7 @@ public class MainController {
         }
 
         String absolutePath = selectedFile.getAbsolutePath();
+RepositoryPAth.setValue(absolutePath);
 
 
         //popUpTextBox("Please enter the path to import xml from: ");
@@ -288,6 +305,7 @@ public class MainController {
         //i have a valid path from the user, can call ImportRepositoryFromXML with xmlPath
         try {
             manager.ImportRepositoryFromXML(true,absolutePath);
+            RepositoryName.set(manager.getGITRepository().getRepositoryName());
         }
         catch(IOException e) {//קיים כבר רפוזטורי עם אותו שם באותה התיקייה שקיבלנו מהאקסמל
 
@@ -312,6 +330,8 @@ public class MainController {
                     /////
                     try {
                         manager.ImportRepositoryFromXML(false, pathString);
+                        RepositoryName.set(manager.getGITRepository().getRepositoryName());
+
                     } catch (Exception e4) {
                         popUpMessage("Could not import from xml");
                     }
@@ -326,8 +346,8 @@ public class MainController {
                 }
             }
         }
-
-        catch (Exception e) {System.out.println(e.getMessage());}
+        catch (Exception e) {System.out.println(e.getMessage());
+        }
 
 
     }

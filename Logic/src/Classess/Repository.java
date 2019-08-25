@@ -66,7 +66,7 @@ public class Repository {
 
             try{inputStream= new FileInputStream(i_XmlPath);}
             catch(FileNotFoundException e) {throw new Exception("File not found");}
-            try{jc = JAXBContext.newInstance("jaxb.schema.generated");}
+            try{jc = JAXBContext.newInstance("generated");}
             catch(JAXBException e) {throw new Exception("Cannot creat objects from xml");}
             try{u = jc.createUnmarshaller();}
             catch(JAXBException e) {throw new Exception("Cannot creat instance from xml");}
