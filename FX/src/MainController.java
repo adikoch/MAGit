@@ -11,6 +11,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
@@ -53,19 +54,17 @@ public class MainController {
     @FXML ScrollPane CommitTree;
     @FXML Label RepName;
     @FXML Label RepPath;
-
-
+    @FXML Label dynamicStatusContent;
+    @FXML Label CommitText;
 
 /*
 *
 * */
 
-
-
-
-    public SimpleStringProperty RepositoryName;
-    public SimpleStringProperty RepositoryPAth;
-
+public SimpleStringProperty CommitTextP;
+    public SimpleStringProperty RepositoryNameP;
+    public SimpleStringProperty RepositoryPAthP;
+    public  SimpleStringProperty dynamicStatusContentP;
 
     public Stage primaryStage;
     public GitManager manager;
@@ -73,55 +72,18 @@ public class MainController {
     public String InputTextBox=null;
 
     public MainController() {
-        RepositoryName = new SimpleStringProperty();
-        RepositoryPAth = new SimpleStringProperty();
-
+        RepositoryNameP = new SimpleStringProperty();
+        RepositoryPAthP = new SimpleStringProperty();
+        dynamicStatusContentP = new SimpleStringProperty();
+        CommitTextP = new SimpleStringProperty();
     }
 
-    public void createCommits(Graph graph) {
-        final Model model = graph.getModel();
-
-        graph.beginUpdate();
-
-
-        Iterator entries = manager.getGITRepository().getCommitMap().entrySet().iterator();
-        while (entries.hasNext()) {
-            Map.Entry thisEntry = (Map.Entry) entries.next();
-            Classess.Commit c = (Commit) thisEntry.getValue();
-            String fatherSHA =  c.getSHA1PreveiousCommit();
-            Commit fatherCommit = manager.getGITRepository().getCommitMap().get(fatherSHA);
-            //ICell ic1 = new CommitNode(c.getCreationDate(), c.getChanger(), c.getDescription());
-//            ICell ic2 = new CommitNode(fatherCommit.getCreationDate(), fatherCommit.getChanger(),fatherCommit.getDescription());
-            //model.addCell(ic1);
-//            model.addCell(ic2);
-//            final Edge edgeC12 = new Edge(ic1,ic2);
-//            model.addEdge(edgeC12);
-           // model.getAllCells().sorted((a,b) -> a.));
-        }
-
-
-//
-//        final Edge edgeC23 = new Edge(c2, c4);
-//        model.addEdge(edgeC23);
-//
-//        final Edge edgeC45 = new Edge(c4, c5);
-//        model.addEdge(edgeC45);
-//
-//        final Edge edgeC13 = new Edge(c1, c3);
-//        model.addEdge(edgeC13);
-//
-//        final Edge edgeC35 = new Edge(c3, c5);
-//        model.addEdge(edgeC35);
-//
-        graph.endUpdate();
-
-      //  graph.layout(new CommitTreeLayout());
-    }
 
     public void initialize()  {
-        RepName.textProperty().bind(RepositoryName);
-        RepPath.textProperty().bind(RepositoryPAth);
-
+        RepName.textProperty().bind(RepositoryNameP);
+        RepPath.textProperty().bind(RepositoryPAthP);
+        dynamicStatusContent.textProperty().bind(dynamicStatusContentP);
+        CommitText.textProperty().bind(CommitTextP);
     }
 
     public void setPrimaryStage(Stage primaryStage) {
@@ -148,7 +110,10 @@ public class MainController {
         okButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                try{manager.ExecuteCommit(newText.getText(),true);}
+                try{manager.ExecuteCommit(newText.getText(),true);
+                    dynamicStatusContentP.set("Commit finished Successfully");
+                    CommitTextP.set(manager.getGITRepository().getHeadBranch().getPointedCommit().getSHAContent());
+                }
                 catch(Exception e){
                     popUpMessage("could not execute commit");//***
                 }
@@ -243,7 +208,8 @@ public class MainController {
         }
         try {
             String FilesOfCommit = manager.showFilesOfCommit();
-            popUpMessage(FilesOfCommit);
+            CommitTextP.set(FilesOfCommit);
+            //popUpMessage(FilesOfCommit);
         } catch (Exception e) {
             popUpMessage("Opening zip file failed");
         }
@@ -279,7 +245,6 @@ public class MainController {
         }
 
         String absolutePath = selectedFile.getAbsolutePath();
-RepositoryPAth.setValue(absolutePath);
 
 
         //popUpTextBox("Please enter the path to import xml from: ");
@@ -305,7 +270,9 @@ RepositoryPAth.setValue(absolutePath);
         //i have a valid path from the user, can call ImportRepositoryFromXML with xmlPath
         try {
             manager.ImportRepositoryFromXML(true,absolutePath);
-            RepositoryName.set(manager.getGITRepository().getRepositoryName());
+            RepositoryNameP.set(manager.getGITRepository().getRepositoryName());
+            RepositoryPAthP.setValue(manager.getGITRepository().getRepositoryPath().toString());
+            dynamicStatusContentP.set("Import of Repository finished Successfully");
         }
         catch(IOException e) {//קיים כבר רפוזטורי עם אותו שם באותה התיקייה שקיבלנו מהאקסמל
 
@@ -330,7 +297,9 @@ RepositoryPAth.setValue(absolutePath);
                     /////
                     try {
                         manager.ImportRepositoryFromXML(false, pathString);
-                        RepositoryName.set(manager.getGITRepository().getRepositoryName());
+                        RepositoryNameP.set(manager.getGITRepository().getRepositoryName());
+                        RepositoryPAthP.setValue(manager.getGITRepository().getRepositoryPath().toString());
+                        dynamicStatusContentP.set("Creating of Repository finished Successfully");
 
                     } catch (Exception e4) {
                         popUpMessage("Could not import from xml");
@@ -394,6 +363,10 @@ RepositoryPAth.setValue(absolutePath);
         {
             popUpMessage("The wanted path does not exist, please try again");
             CreateEmptyRepositoryOnAction();
+            RepositoryNameP.set(manager.getGITRepository().getRepositoryName());
+            RepositoryPAthP.setValue(manager.getGITRepository().getRepositoryPath().toString());
+            dynamicStatusContentP.set("Creating of Repository finished Successfully");
+
             return;
         }
         //path exist
@@ -404,11 +377,17 @@ RepositoryPAth.setValue(absolutePath);
         {
             popUpMessage("The wanted name already exist, please try again");
             CreateEmptyRepositoryOnAction();
+            RepositoryNameP.set(manager.getGITRepository().getRepositoryName());
+            RepositoryPAthP.setValue(manager.getGITRepository().getRepositoryPath().toString());
+            dynamicStatusContentP.set("Creating of Repository finished Successfully");
+
             return;
         }
 
         try {
             manager.createEmptyRepositoryFolders(pathString, repName);
+            dynamicStatusContentP.set("Creating of Repository finished Successfully");
+
         } catch (Exception e) {
             popUpMessage("File creation failed, nothing changed");
         }
@@ -445,6 +424,10 @@ RepositoryPAth.setValue(absolutePath);
             //
             try {
                 manager.switchRepository(Paths.get(pathString));
+                RepositoryNameP.set(manager.getGITRepository().getRepositoryName());
+                RepositoryPAthP.setValue(manager.getGITRepository().getRepositoryPath().toString());
+                dynamicStatusContentP.set("Import of Repository finished Successfully");
+
             } catch (IOException e) {
                 popUpMessage("opening zip file failed");
                 return;
@@ -457,6 +440,10 @@ RepositoryPAth.setValue(absolutePath);
         {
             try {
                 manager.switchRepository(pathFromXml);
+                RepositoryNameP.set(manager.getGITRepository().getRepositoryName());
+                RepositoryPAthP.setValue(manager.getGITRepository().getRepositoryPath().toString());
+                dynamicStatusContentP.set("Import of Repository finished Successfully");
+
             } catch (IOException e) {
                 popUpMessage("opening zip file failed");
                 return;
@@ -476,6 +463,7 @@ RepositoryPAth.setValue(absolutePath);
             popUpMessage("There is no repository defined, no branches to show");
             return;
         }
+
         popUpMessage(manager.getAllBranches());
     }
 
@@ -491,18 +479,18 @@ RepositoryPAth.setValue(absolutePath);
 
         newBranchName = InputTextBox;//getting the name
 
-        for(Branch b : manager.getGITRepository().getBranches()) //checking if exist already
+        if(manager.getGITRepository().getBranchByName(newBranchName) != null) //checking if exist already
         {
-            if(b.getBranchName().toLowerCase().equals(newBranchName.toLowerCase()))
-            {
                 popUpMessage("Branch name already exist, please enter a different name");
                 CreateNewBranchOnAction();
                 return;
-            }
+
         }
 
         try{
-            manager.CreatBranch(newBranchName);}
+            manager.CreatBranch(newBranchName);
+            dynamicStatusContentP.set("Creation of Branch finished Successfully");
+        }
         catch(IOException e) {popUpMessage("Reading text file failed");}
 
         //valid
@@ -517,13 +505,19 @@ RepositoryPAth.setValue(absolutePath);
         }
         popUpTextBox("Please enter the name of the branch to delete");
         String branchName = InputTextBox;
-        InputTextBox=null;
+        InputTextBox = null;
+        if (manager.getGITRepository().getBranchByName(branchName) != null) {
+            try {
+                manager.DeleteBranch(branchName);
+                dynamicStatusContentP.set("Branch was deleted Successfully");
 
-        try {
-            manager.DeleteBranch(branchName);
-        } catch (Exception e) {
-            popUpMessage("Erasing the head branch is not a valid action, no changes occurred");
+            } catch (Exception e) {
+                popUpMessage("Erasing the head branch is not a valid action, no changes occurred");
+            }
+            popUpMessage("No such Branch exist!");
+
         }
+
 
     }
 
@@ -540,6 +534,7 @@ RepositoryPAth.setValue(absolutePath);
         if(manager.getGITRepository().getBranchByName(branchName) != null) {
             try {
                 manager.ExecuteCommit("", false);
+                dynamicStatusContentP.set("Checkout was executed");
                 if (manager.getDeletedFiles().size() != 0 ||
                         manager.getUpdatedFiles().size() != 0 ||
                         manager.getCreatedFiles().size() != 0) {
@@ -549,6 +544,7 @@ RepositoryPAth.setValue(absolutePath);
                     if (toCommit.toLowerCase().equals("yes".toLowerCase())) {
                         try {
                             manager.ExecuteCommit("commit before checkout to " + branchName + "Branch", true);
+                            dynamicStatusContentP.set("Checkout was executed");
                         } catch (Exception e) {
                             popUpMessage("Unable to create zip file");
                             return;
@@ -556,6 +552,7 @@ RepositoryPAth.setValue(absolutePath);
                     }
                 }
                 manager.executeCheckout(branchName);
+                dynamicStatusContentP.set("Checkout was executed");
                 manager.getCreatedFiles().clear();
                 manager.getDeletedFiles().clear();
                 manager.getUpdatedFiles().clear();
