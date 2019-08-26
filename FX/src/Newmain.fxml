@@ -22,7 +22,8 @@
       <VBox layoutX="92.0" layoutY="38.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <MenuBar>
-              <menus>
+
+                <menus>
                 <Menu mnemonicParsing="false" text="Repository">
                   <items>
                     <MenuItem fx:id="DefineUsername" mnemonicParsing="false" onAction="#DefineUserNameOnAction" text="Define Username" />
