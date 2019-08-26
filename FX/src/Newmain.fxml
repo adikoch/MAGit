@@ -22,7 +22,8 @@
       <VBox layoutX="92.0" layoutY="38.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
          <children>
             <MenuBar>
-              <menus>
+
+                <menus>
                 <Menu mnemonicParsing="false" text="Repository">
                   <items>
                     <MenuItem fx:id="DefineUsername" mnemonicParsing="false" onAction="#DefineUserNameOnAction" text="Define Username" />
@@ -82,7 +83,10 @@
                         <SplitPane dividerPositions="0.5" layoutX="129.0" layoutY="39.0" orientation="VERTICAL" prefHeight="278.0" prefWidth="417.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                           <items>
                             <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0" />
-                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0" />
+                            <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+                                 <children>
+                                    <Label fx:id="CommitText" layoutX="62.0" layoutY="29.0" prefHeight="154.0" prefWidth="415.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                 </children></AnchorPane>
                           </items>
                         </SplitPane>
                      </children>
@@ -107,7 +111,7 @@
                               <Font name="System Bold" size="12.0" />
                            </font>
                         </Label>
-                        <Label text="dynamic status content" />
+                        <Label fx:id="dynamicStatusContent" text="dynamic status content" />
                      </children>
                   </HBox>
                </children>

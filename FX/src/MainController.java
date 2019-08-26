@@ -11,14 +11,17 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -36,134 +39,112 @@ public class MainController {
     //    @FXML BorderPane border;
 //    @FXML VBox vbox;
 //    @FXML MenuBar menu;
-    @FXML MenuItem DefineUsername;
-    @FXML MenuItem ImportRepositoryFromXML;
-    @FXML MenuItem CreateEmptyRepository;
-    @FXML MenuItem SwitchRepository;
-    @FXML MenuItem ShowCommitsInfo;
-    @FXML MenuItem ShowStatus;
-    @FXML MenuItem Commit;
-    @FXML MenuItem ShowAllBranches;
-    @FXML MenuItem CreateNewBranch;
-    @FXML MenuItem DeleteBranch;
-    @FXML MenuItem CheckOut;
-    @FXML MenuItem ResetBranch;
-    @FXML GridPane root;
-    @FXML Label CommitInformation;
-    @FXML ScrollPane CommitTree;
-    @FXML Label RepName;
-    @FXML Label RepPath;
+    @FXML
+    MenuItem DefineUsername;
+    @FXML
+    MenuItem ImportRepositoryFromXML;
+    @FXML
+    MenuItem CreateEmptyRepository;
+    @FXML
+    MenuItem SwitchRepository;
+    @FXML
+    MenuItem ShowCommitsInfo;
+    @FXML
+    MenuItem ShowStatus;
+    @FXML
+    MenuItem Commit;
+    @FXML
+    MenuItem ShowAllBranches;
+    @FXML
+    MenuItem CreateNewBranch;
+    @FXML
+    MenuItem DeleteBranch;
+    @FXML
+    MenuItem CheckOut;
+    @FXML
+    MenuItem ResetBranch;
+    @FXML
+    GridPane root;
+    @FXML
+    Label CommitInformation;
+    @FXML
+    ScrollPane CommitTree;
+    @FXML
+    Label RepName;
+    @FXML
+    Label RepPath;
+    @FXML
+    Label dynamicStatusContent;
+    @FXML
+    Label CommitText;
 
+    /*
+     *
+     * */
 
-
-/*
-*
-* */
-
-
-
-
-    public SimpleStringProperty RepositoryName;
-    public SimpleStringProperty RepositoryPAth;
-
+    public SimpleStringProperty CommitTextP;
+    public SimpleStringProperty RepositoryNameP;
+    public SimpleStringProperty RepositoryPAthP;
+    public SimpleStringProperty dynamicStatusContentP;
 
     public Stage primaryStage;
     public GitManager manager;
 
-    public String InputTextBox=null;
+    public String InputTextBox = null;
 
     public MainController() {
-        RepositoryName = new SimpleStringProperty();
-        RepositoryPAth = new SimpleStringProperty();
-
-
-
+        RepositoryNameP = new SimpleStringProperty();
+        RepositoryPAthP = new SimpleStringProperty();
+        dynamicStatusContentP = new SimpleStringProperty();
+        CommitTextP = new SimpleStringProperty();
     }
 
-    public void createCommits(Graph graph) {
-        final Model model = graph.getModel();
 
-        graph.beginUpdate();
-
-
-        Iterator entries = manager.getGITRepository().getCommitMap().entrySet().iterator();
-        while (entries.hasNext()) {
-            Map.Entry thisEntry = (Map.Entry) entries.next();
-            Classess.Commit c = (Commit) thisEntry.getValue();
-            String fatherSHA =  c.getSHA1PreveiousCommit();
-            Commit fatherCommit = manager.getGITRepository().getCommitMap().get(fatherSHA);
-            //ICell ic1 = new CommitNode(c.getCreationDate(), c.getChanger(), c.getDescription());
-//            ICell ic2 = new CommitNode(fatherCommit.getCreationDate(), fatherCommit.getChanger(),fatherCommit.getDescription());
-            //model.addCell(ic1);
-//            model.addCell(ic2);
-//            final Edge edgeC12 = new Edge(ic1,ic2);
-//            model.addEdge(edgeC12);
-           // model.getAllCells().sorted((a,b) -> a.));
-        }
-
-
-//
-//        final Edge edgeC23 = new Edge(c2, c4);
-//        model.addEdge(edgeC23);
-//
-//        final Edge edgeC45 = new Edge(c4, c5);
-//        model.addEdge(edgeC45);
-//
-//        final Edge edgeC13 = new Edge(c1, c3);
-//        model.addEdge(edgeC13);
-//
-//        final Edge edgeC35 = new Edge(c3, c5);
-//        model.addEdge(edgeC35);
-//
-        graph.endUpdate();
-
-      //  graph.layout(new CommitTreeLayout());
-    }
-
-    public void initialize()  {
-        RepName.textProperty().bind(RepositoryName);
-        RepPath.textProperty().bind(RepositoryPAth);
-
+    public void initialize() {
+        RepName.textProperty().bind(RepositoryNameP);
+        RepPath.textProperty().bind(RepositoryPAthP);
+        dynamicStatusContent.textProperty().bind(dynamicStatusContentP);
+        CommitText.textProperty().bind(CommitTextP);
     }
 
     public void setPrimaryStage(Stage primaryStage) {
         this.primaryStage = primaryStage;
     }
+
     public void setLogic(GitManager manager) {
         this.manager = manager;
     }
-
 
 
     //Commit
 
     @FXML
     public void CommitOnAction() {
-        Label label=new Label("Please enter the description of your commit");
-        TextField newText= new TextField();
+        Label label = new Label("Please enter the description of your commit");
+        TextField newText = new TextField();
         Button okButton = new Button("OK");
         //okButton.setDisable(false);
         //okButton.setVisible(true);
 
-        Stage popUpWindow=new Stage();
+        Stage popUpWindow = new Stage();
         popUpWindow.initModality(Modality.APPLICATION_MODAL);
-        okButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                try{manager.ExecuteCommit(newText.getText(),true);}
-                catch(Exception e){
-                    popUpMessage("could not execute commit");//***
-                }
-                out.println(newText.getText());
-                popUpWindow.close();
-
+        okButton.setOnAction(event -> {
+            try {
+                manager.ExecuteCommit(newText.getText(), true);
+                dynamicStatusContentP.set("Commit finished Successfully");
+                CommitTextP.set(manager.getGITRepository().getHeadBranch().getPointedCommit().getSHAContent());
+            } catch (Exception e) {
+                popUpMessage("could not execute commit");//***
             }
+            out.println(newText.getText());
+            popUpWindow.close();
+
         });
         FlowPane root = new FlowPane();
         root.setPadding(new Insets(10));
         root.setHgap(10);
 
-        root.getChildren().addAll( label,newText,okButton );
+        root.getChildren().addAll(label, newText, okButton);
 
         Scene scene = new Scene(root, 500, 120, Color.WHITE);
         popUpWindow.setTitle("Submit description");
@@ -172,17 +153,15 @@ public class MainController {
 
     }
 
+
+
     @FXML
     public void ShowStatusOnAction() {
-        Label starting= new Label("The current status of WC is:\n");
-        Button closeButton= new Button("Close");
-        Stage popUpWindow= new Stage();
-        closeButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                popUpWindow.close();
-            }
-        });
+        StringBuilder sb= new StringBuilder();
+
+        sb.append("The current status of WC is:\n");
+        sb.append(System.lineSeparator());
+         Stage popUpWindow= new Stage();
 
         popUpWindow.initModality(Modality.APPLICATION_MODAL);
         FlowPane root = new FlowPane();
@@ -190,51 +169,86 @@ public class MainController {
         root.setHgap(10);
 
 
-        if (manager.getGITRepository() != null) {
-            Label repInfo= new Label ("Repository's Name:" + manager.getGITRepository().getRepositoryName()+"\n"
+
+
+                if (manager.getGITRepository() != null) {
+                    sb.append ("Repository's Name:" + manager.getGITRepository().getRepositoryName()+"\n"
                     +"Repository's Path:" + manager.getGITRepository().getRepositoryPath().toString() + "\n" +
-                    "Repository's User:" + manager.getUserName());
-            try {
-                manager.ExecuteCommit("", false);
-                Label deleted= new Label("Deleted Files's Paths:" + manager.getDeletedFiles()+'\n');
-                Label added= new Label("Added Files's Paths:" + manager.getCreatedFiles()+'\n');
-                Label updated= new Label("Updated Files's Paths:" + manager.getUpdatedFiles()+'\n');
-                manager.getCreatedFiles().clear();
-                manager.getDeletedFiles().clear();
-                manager.getUpdatedFiles().clear();
+                            "Repository's User:" + manager.getUserName()+"\n");
+                    try {
+                        manager.ExecuteCommit("", false);
+                        sb.append(System.lineSeparator());
+                        sb.append("Deleted Files's Paths:" + manager.getDeletedFiles()+'\n');
+                        sb.append("Added Files's Paths:" + manager.getCreatedFiles()+'\n');
+                        sb.append("Updated Files's Paths:" + manager.getUpdatedFiles()+'\n');
+                        manager.getCreatedFiles().clear();
+                        manager.getDeletedFiles().clear();
+                        manager.getUpdatedFiles().clear();
 
+                        root.getChildren().addAll( new Label(sb.toString()));
 
+                        Scene scene = new Scene(root);
+                        popUpWindow.setTitle("WC status");
+                        popUpWindow.setScene(scene);
+                        popUpWindow.showAndWait();
 
-                root.getChildren().addAll(starting, repInfo  ,deleted , added, updated, closeButton);
+                    } catch (Exception e) {
+                        popUpMessage("Show Status Failed! Unable to create files");
+                    }
+                } else {
+                    popUpMessage("There is no repository defined, no status to show");
+                }
+                popUpWindow.close();
 
-                Scene scene = new Scene(root, 500, 120, Color.WHITE);
-                popUpWindow.setTitle("Submit description");
-                popUpWindow.setScene(scene);
-                popUpWindow.showAndWait();
-
-            } catch (Exception e) {
-                popUpMessage("Show Status Failed! Unable to create files");
             }
-        } else {
-            popUpMessage("There is no repository defined, no status to show");
-        }
-        popUpWindow.close();
 
-    }
 
-    @FXML
-    public void ShowCommitsInfoOnAction(){
-        if (manager.getGITRepository() == null) {
-            popUpMessage("There is no repository defined, no files to show");
-            return;
-        }
-        try {
-            String s = manager.showFilesOfCommit();
-            popUpMessage(s);
-        } catch (Exception e) {
-            popUpMessage("Unable to generate folder from commit object");
-        }
-    }
+
+//    @FXML
+//    public void ShowStatusOnAction() {
+//        Label starting = new Label("The current status of WC is:\n");
+//        Button closeButton = new Button("Close");
+//        Stage popUpWindow = new Stage();
+//        //*****************************************************************************************************
+//        closeButton.setOnAction(event -> popUpWindow.close());
+//
+//        popUpWindow.initModality(Modality.APPLICATION_MODAL);
+//        FlowPane root = new FlowPane();
+//        root.setPadding(new Insets(10));
+//        root.setHgap(10);
+//
+//
+//        if (manager.getGITRepository() != null) {
+//            Label repInfo = new Label("Repository's Name:" + manager.getGITRepository().getRepositoryName() + "\n"
+//                    + "Repository's Path:" + manager.getGITRepository().getRepositoryPath().toString() + "\n" +
+//                    "Repository's User:" + manager.getUserName());
+//            try {
+//                manager.ExecuteCommit("", false);
+//                Label deleted = new Label("Deleted Files's Paths:" + manager.getDeletedFiles() + '\n');
+//                Label added = new Label("Added Files's Paths:" + manager.getCreatedFiles() + '\n');
+//                Label updated = new Label("Updated Files's Paths:" + manager.getUpdatedFiles() + '\n');
+//                manager.getCreatedFiles().clear();
+//                manager.getDeletedFiles().clear();
+//                manager.getUpdatedFiles().clear();
+//
+//
+//                root.getChildren().addAll(starting, repInfo, deleted, added, updated, closeButton);
+//
+//                Scene scene = new Scene(root, 500, 120, Color.WHITE);
+//                popUpWindow.setTitle("Submit description");
+//                popUpWindow.setScene(scene);
+//                popUpWindow.showAndWait();
+//
+//            } catch (Exception e) {
+//                popUpMessage("Show Status Failed! Unable to create files");
+//            }
+//        } else {
+//            popUpMessage("There is no repository defined, no status to show");
+//        }
+//        popUpWindow.close();
+//
+//    }
+
 
     @FXML
     public void ShowHistoryOfActiveBranchOnAction() {
@@ -257,7 +271,8 @@ public class MainController {
         }
         try {
             String FilesOfCommit = manager.showFilesOfCommit();
-            popUpMessage(FilesOfCommit);
+            CommitTextP.set(FilesOfCommit);
+            //popUpMessage(FilesOfCommit);
         } catch (Exception e) {
             popUpMessage("Opening zip file failed");
         }
@@ -276,24 +291,38 @@ public class MainController {
         }
     }
 
-/////////////////////inbar check
     @FXML
-    public void ImportRepFromXmlOnAction() throws Exception {
-
-        String pathString =null;
-        String SorO=null;
-        boolean isValid=false;
-
+    public String getFileWithChooser(String extension) {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select XMl file");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("xml files", "*.xml"));
-        File selectedFile = fileChooser.showOpenDialog(primaryStage);
-        if (selectedFile == null) {
-            return;
-        }
+        if (extension != null)
+            fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("xml files", "*." + extension));
 
-        String absolutePath = selectedFile.getAbsolutePath();
-RepositoryPAth.setValue(absolutePath);
+
+        File selectedFile = fileChooser.showOpenDialog(primaryStage);
+
+
+        return selectedFile.getAbsolutePath();
+
+
+    }
+
+    @FXML
+    public void ImportRepFromXmlOnAction() {
+
+        String pathString = null;
+        String SorO = null;
+        boolean isValid = false;
+
+//        FileChooser fileChooser = new FileChooser();
+//        fileChooser.setTitle("Select XMl file");
+//        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("xml files", "*.xml"));
+//        File selectedFile = fileChooser.showOpenDialog(primaryStage);
+//        if (selectedFile == null) {
+//            return;
+//        }
+//        = selectedFile.getAbsolutePath();
+        String absolutePath = getFileWithChooser("xml");
 
 
         //popUpTextBox("Please enter the path to import xml from: ");
@@ -318,33 +347,38 @@ RepositoryPAth.setValue(absolutePath);
 
         //i have a valid path from the user, can call ImportRepositoryFromXML with xmlPath
         try {
-            manager.ImportRepositoryFromXML(true,absolutePath);
-            RepositoryName.set(manager.getGITRepository().getRepositoryName());
-        }
-        catch(IOException e) {//קיים כבר רפוזטורי עם אותו שם באותה התיקייה שקיבלנו מהאקסמל
+            manager.ImportRepositoryFromXML(true, absolutePath);
+            RepositoryNameP.set(manager.getGITRepository().getRepositoryName());
+            RepositoryPAthP.setValue(manager.getGITRepository().getRepositoryPath().toString());
+            dynamicStatusContentP.set("Import of Repository finished Successfully");
+        } catch (IOException e) {//קיים כבר רפוזטורי עם אותו שם באותה התיקייה שקיבלנו מהאקסמל
 
             popUpTextBox("There is already a repository with the same name at the wanted location\nPlease enter O to over write the existing, S to switch to the existing one");
-            SorO=InputTextBox;
-            InputTextBox=null;
-            while(!isValid){
+            SorO = InputTextBox;
+            InputTextBox = null;
+            while (!isValid) {
                 if (SorO.toLowerCase().equals("s")) // switch to the existing repo
                 {//להוסיף את החלק שבודק האם מגיט מהסוויצ רפוזטורי
-                    isValid=true;
+                    isValid = true;
                     manager.setGITRepository(null);
                     switchRepHelper(true, Paths.get(e.getMessage()));
                 } else if (SorO.toLowerCase().equals("o")) { // overwrite the existing
-                    isValid=true;
+                    isValid = true;
                     manager.deleteFilesInFolder(new File(e.getMessage()));
                     manager.deleteFilesInFolder(new File(e.getMessage() + "\\.magit"));
                     try {
                         Files.delete((Paths.get(e.getMessage())));
 
                     }// delete the existing, prepering for loading , need the path of the folder to erase(c:\repo1)
-                    catch(IOException e3){popUpMessage("Could not delete the old reposetory, check if it is open some where else");}//ואיך שהוא לחזור לתפריט הראשי
+                    catch (IOException e3) {
+                        popUpMessage("Could not delete the old reposetory, check if it is open some where else");
+                    }//ואיך שהוא לחזור לתפריט הראשי
                     /////
                     try {
                         manager.ImportRepositoryFromXML(false, pathString);
-                        RepositoryName.set(manager.getGITRepository().getRepositoryName());
+                        RepositoryNameP.set(manager.getGITRepository().getRepositoryName());
+                        RepositoryPAthP.setValue(manager.getGITRepository().getRepositoryPath().toString());
+                        dynamicStatusContentP.set("Creating of Repository finished Successfully");
 
                     } catch (Exception e4) {
                         popUpMessage("Could not import from xml");
@@ -352,15 +386,15 @@ RepositoryPAth.setValue(absolutePath);
 
                 } else//not o not s
                 {
-                    isValid=false;
+                    isValid = false;
                     popUpTextBox("please enter a valid input: O/S");
-                    SorO=InputTextBox;
-                    InputTextBox=null;
+                    SorO = InputTextBox;
+                    InputTextBox = null;
 
                 }
             }
-        }
-        catch (Exception e) {System.out.println(e.getMessage());
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
 
 
@@ -368,27 +402,23 @@ RepositoryPAth.setValue(absolutePath);
 
 
     //פונקציה שמייצרת חלון חדש עם תיבת טקסט בפנים עם הטקסט שהיא מקלבת וכשלוחצים לה ok מחזירה לי את הטקסט שכתבו שם בתוך המשתנה מחלקה יוזראינפוט
-    public void popUpTextBox(String textToUser)
-    {
-        Label label=new Label(textToUser);
-        TextField newText= new TextField();
+    public void popUpTextBox(String textToUser) {
+        Label label = new Label(textToUser);
+        TextField newText = new TextField();
         Button okButton = new Button("OK");
 
-        Stage popUpWindow=new Stage();
+        Stage popUpWindow = new Stage();
         popUpWindow.initModality(Modality.APPLICATION_MODAL);
 
-        okButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                InputTextBox=newText.getText();
-                popUpWindow.close();
-            }
+        okButton.setOnAction(event -> {
+            InputTextBox = newText.getText();
+            popUpWindow.close();
         });
         FlowPane root = new FlowPane();
         root.setPadding(new Insets(10));
         root.setHgap(10);
 
-        root.getChildren().addAll( label,newText,okButton );
+        root.getChildren().addAll(label, newText, okButton);
 
         Scene scene = new Scene(root, 500, 120, Color.WHITE);
         popUpWindow.setTitle("Submit text");
@@ -399,30 +429,27 @@ RepositoryPAth.setValue(absolutePath);
     //שלוש פעולות בכל פעם שרוצה לקבל משהו מהמשתמש: קריאה לטקסטבוקס, לקיחת מה שחזר משם אל המשתנה הרצוי, איפוס המשתנה אינפוטטקסטבוקס
     @FXML
     public void CreateEmptyRepositoryOnAction() {
-        String repName=null;
-        String pathString=null;
-        popUpTextBox("Enter the path for the new repository: ");
-        pathString=InputTextBox;
-        InputTextBox=null;
-        if (!Files.exists(Paths.get(pathString)))
-        {
-            popUpMessage("The wanted path does not exist, please try again");
-            CreateEmptyRepositoryOnAction();
-            return;
-        }
-        //path exist
+        String repName;
+
+        String pathString = getFolderWithChooser("New repository's location");
+
         popUpTextBox("Choose a name for the new repository:");
-        repName=InputTextBox;
-        InputTextBox=null;
-        if(Files.exists(Paths.get(pathString + "\\" + repName)))
-        {
+        repName = InputTextBox;
+        InputTextBox = null;
+        if (Files.exists(Paths.get(pathString + "\\" + repName))) {
             popUpMessage("The wanted name already exist, please try again");
             CreateEmptyRepositoryOnAction();
+            RepositoryNameP.set(manager.getGITRepository().getRepositoryName());
+            RepositoryPAthP.setValue(manager.getGITRepository().getRepositoryPath().toString());
+            dynamicStatusContentP.set("Creating of Repository finished Successfully");
+
             return;
         }
 
         try {
             manager.createEmptyRepositoryFolders(pathString, repName);
+            dynamicStatusContentP.set("Creating of Repository finished Successfully");
+
         } catch (Exception e) {
             popUpMessage("File creation failed, nothing changed");
         }
@@ -430,35 +457,28 @@ RepositoryPAth.setValue(absolutePath);
     }
 
     @FXML
-    public void SwitchRepositoryOnAction(){
+    public void SwitchRepositoryOnAction() {
         switchRepHelper(false, null);
     }
 
-    public void switchRepHelper(boolean isFromXml, Path pathFromXml){
-        if(!isFromXml)//לא מאקסמל צריך לבקש את הפאט
+    public void switchRepHelper(boolean isFromXml, Path pathFromXml) {
+        if (!isFromXml)//לא מאקסמל, צריך לבקש את הפאט
         {
-            String pathString= new String();
-            popUpTextBox("Enter the path for the new repository: ");
-            pathString=InputTextBox;
-            InputTextBox=null;
+            String pathString = getFolderWithChooser("Select a directory");
 
-            if(!Files.exists(Paths.get(pathString)))
-            {
-                popUpMessage("The wanted path does not exist, please try again");
-                switchRepHelper(isFromXml,pathFromXml);
-                return;
-            }
-            if(!Files.exists(Paths.get(pathString+"\\"+".magit"))) {//the path exist but not magit
+            if (!Files.exists(Paths.get(pathString + "\\" + ".magit"))) {//the path exist but not magit
                 popUpMessage("The wanted path is not a part of the magit system, please try again");
                 switchRepHelper(isFromXml, pathFromXml);
             }
-
-
 
             //here the path i have exist, and is a part of the magit system
             //
             try {
                 manager.switchRepository(Paths.get(pathString));
+                RepositoryNameP.set(manager.getGITRepository().getRepositoryName());
+                RepositoryPAthP.setValue(manager.getGITRepository().getRepositoryPath().toString());
+                dynamicStatusContentP.set("Import of Repository finished Successfully");
+
             } catch (IOException e) {
                 popUpMessage("opening zip file failed");
                 return;
@@ -466,11 +486,13 @@ RepositoryPAth.setValue(absolutePath);
                 popUpMessage("was unable to generate folder from commit object");
                 return;
             }
-        }
-        else
-        {
+        } else {
             try {
                 manager.switchRepository(pathFromXml);
+                RepositoryNameP.set(manager.getGITRepository().getRepositoryName());
+                RepositoryPAthP.setValue(manager.getGITRepository().getRepositoryPath().toString());
+                dynamicStatusContentP.set("Import of Repository finished Successfully");
+
             } catch (IOException e) {
                 popUpMessage("opening zip file failed");
                 return;
@@ -490,6 +512,7 @@ RepositoryPAth.setValue(absolutePath);
             popUpMessage("There is no repository defined, no branches to show");
             return;
         }
+
         popUpMessage(manager.getAllBranches());
     }
 
@@ -505,19 +528,20 @@ RepositoryPAth.setValue(absolutePath);
 
         newBranchName = InputTextBox;//getting the name
 
-        for(Branch b : manager.getGITRepository().getBranches()) //checking if exist already
+        if (manager.getGITRepository().getBranchByName(newBranchName) != null) //checking if exist already
         {
-            if(b.getBranchName().toLowerCase().equals(newBranchName.toLowerCase()))
-            {
-                popUpMessage("Branch name already exist, please enter a different name");
-                CreateNewBranchOnAction();
-                return;
-            }
+            popUpMessage("Branch name already exist, please enter a different name");
+            CreateNewBranchOnAction();
+            return;
+
         }
 
-        try{
-            manager.CreatBranch(newBranchName);}
-        catch(IOException e) {popUpMessage("Reading text file failed");}
+        try {
+            manager.CreatBranch(newBranchName);
+            dynamicStatusContentP.set("Creation of Branch finished Successfully");
+        } catch (IOException e) {
+            popUpMessage("Reading text file failed");
+        }
 
         //valid
 
@@ -531,13 +555,19 @@ RepositoryPAth.setValue(absolutePath);
         }
         popUpTextBox("Please enter the name of the branch to delete");
         String branchName = InputTextBox;
-        InputTextBox=null;
+        InputTextBox = null;
+        if (manager.getGITRepository().getBranchByName(branchName) != null) {
+            try {
+                manager.DeleteBranch(branchName);
+                dynamicStatusContentP.set("Branch was deleted Successfully");
 
-        try {
-            manager.DeleteBranch(branchName);
-        } catch (Exception e) {
-            popUpMessage("Erasing the head branch is not a valid action, no changes occurred");
+            } catch (Exception e) {
+                popUpMessage("Erasing the head branch is not a valid action, no changes occurred");
+            }
+            popUpMessage("No such Branch exist!");
+
         }
+
 
     }
 
@@ -549,20 +579,22 @@ RepositoryPAth.setValue(absolutePath);
         }
         popUpTextBox("Please enter the name of the branch to move over to");
         String branchName = InputTextBox;
-        InputTextBox= null;
+        InputTextBox = null;
 
-        if(manager.getGITRepository().getBranchByName(branchName) != null) {
+        if (manager.getGITRepository().getBranchByName(branchName) != null) {
             try {
                 manager.ExecuteCommit("", false);
+                dynamicStatusContentP.set("Checkout was executed");
                 if (manager.getDeletedFiles().size() != 0 ||
                         manager.getUpdatedFiles().size() != 0 ||
                         manager.getCreatedFiles().size() != 0) {
                     popUpTextBox("There are unsaved changes in the WC. would you like to save it before checkout? (yes/no");
                     String toCommit = InputTextBox;
-                    InputTextBox=null;
+                    InputTextBox = null;
                     if (toCommit.toLowerCase().equals("yes".toLowerCase())) {
                         try {
                             manager.ExecuteCommit("commit before checkout to " + branchName + "Branch", true);
+                            dynamicStatusContentP.set("Checkout was executed");
                         } catch (Exception e) {
                             popUpMessage("Unable to create zip file");
                             return;
@@ -570,14 +602,14 @@ RepositoryPAth.setValue(absolutePath);
                     }
                 }
                 manager.executeCheckout(branchName);
+                dynamicStatusContentP.set("Checkout was executed");
                 manager.getCreatedFiles().clear();
                 manager.getDeletedFiles().clear();
                 manager.getUpdatedFiles().clear();
             } catch (Exception e) {
                 popUpMessage("Unable to create zip file");
             }
-        }
-        else popUpMessage("Branch does not exist!");
+        } else popUpMessage("Branch does not exist!");
     }
 
     @FXML
@@ -585,15 +617,14 @@ RepositoryPAth.setValue(absolutePath);
 
     }
 
-    public void popUpMessage(String toShow)
-    {
-        Stage popUpWindow= new Stage();
+    public void popUpMessage(String toShow) {
+        Stage popUpWindow = new Stage();
 
         popUpWindow.initModality(Modality.APPLICATION_MODAL);
         FlowPane root = new FlowPane();
         root.setPadding(new Insets(10));
         root.setHgap(10);
-        Label noRep= new Label(toShow);
+        Label noRep = new Label(toShow);
         root.getChildren().addAll(noRep);
         Scene scene = new Scene(root);
         //Scene scene = new Scene(root, 500, 400, Color.WHITE);
@@ -601,5 +632,30 @@ RepositoryPAth.setValue(absolutePath);
         popUpWindow.showAndWait();
     }
 
+    @FXML
+    public void ShowCommitsInfoOnAction() {
+        if (manager.getGITRepository() == null) {
+            popUpMessage("There is no repository defined, no files to show");
+            return;
+        }
+        try {
+            String s = manager.showFilesOfCommit();
+            popUpMessage(s);
+        } catch (Exception e) {
+            popUpMessage("Unable to generate folder from commit object");
+        }
+    }
 
+
+    @FXML
+    public String getFolderWithChooser(String title) {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle(title);
+
+        File selectedFile = directoryChooser.showDialog(primaryStage);
+
+        return selectedFile.getAbsolutePath();
+    }
 }
+
+
