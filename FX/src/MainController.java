@@ -572,6 +572,18 @@ public SimpleStringProperty CommitTextP;
         popUpWindow.setScene(scene);
         popUpWindow.showAndWait();
     }
-
+    @FXML
+    public void ShowCommitsInfoOnAction(){
+        if (manager.getGITRepository() == null) {
+            popUpMessage("There is no repository defined, no files to show");
+            return;
+        }
+        try {
+            String s = manager.showFilesOfCommit();
+            popUpMessage(s);
+        } catch (Exception e) {
+            popUpMessage("Unable to generate folder from commit object");
+        }
+    }
 
 }
