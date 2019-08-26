@@ -1,6 +1,6 @@
 import Classess.GitManager;
-//import com.fxgraph.graph.Graph;
-//import com.fxgraph.graph.PannableCanvas;
+import com.fxgraph.graph.Graph;
+import com.fxgraph.graph.PannableCanvas;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -19,7 +19,7 @@ public class Main extends Application {
         FXMLLoader loader = new FXMLLoader();
 
         // load main fxml
-        URL mainFXML = getClass().getResource("/MainControl.fxml");
+        URL mainFXML = getClass().getResource("/Newmain.fxml");
         loader.setLocation(mainFXML);
         AnchorPane root = loader.load();
 
@@ -42,15 +42,15 @@ public class Main extends Application {
 //        //canvas.setPrefWidth(100);
 //        //canvas.setPrefHeight(100);
 //        scrollPane.setContent(canvas);
-//
+
 
         primaryStage.setScene(scene);
         primaryStage.show();
-
+//
 //        Platform.runLater(() -> {
 //            tree.getUseViewportGestures().set(false);
 //            tree.getUseNodeGestures().set(false);
-      //  });
+//        });
     }
 
     public static void main(String[] args) {
