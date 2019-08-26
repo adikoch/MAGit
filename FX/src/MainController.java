@@ -107,20 +107,17 @@ public SimpleStringProperty CommitTextP;
 
         Stage popUpWindow=new Stage();
         popUpWindow.initModality(Modality.APPLICATION_MODAL);
-        okButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                try{manager.ExecuteCommit(newText.getText(),true);
-                    dynamicStatusContentP.set("Commit finished Successfully");
-                    CommitTextP.set(manager.getGITRepository().getHeadBranch().getPointedCommit().getSHAContent());
-                }
-                catch(Exception e){
-                    popUpMessage("could not execute commit");//***
-                }
-                out.println(newText.getText());
-                popUpWindow.close();
-
+        okButton.setOnAction(event -> {
+            try{manager.ExecuteCommit(newText.getText(),true);
+                dynamicStatusContentP.set("Commit finished Successfully");
+                CommitTextP.set(manager.getGITRepository().getHeadBranch().getPointedCommit().getSHAContent());
             }
+            catch(Exception e){
+                popUpMessage("could not execute commit");//***
+            }
+            out.println(newText.getText());
+            popUpWindow.close();
+
         });
         FlowPane root = new FlowPane();
         root.setPadding(new Insets(10));
@@ -140,12 +137,7 @@ public SimpleStringProperty CommitTextP;
         Label starting= new Label("The current status of WC is:\n");
         Button closeButton= new Button("Close");
         Stage popUpWindow= new Stage();
-        closeButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                popUpWindow.close();
-            }
-        });
+        closeButton.setOnAction(event -> popUpWindow.close());
 
         popUpWindow.initModality(Modality.APPLICATION_MODAL);
         FlowPane root = new FlowPane();
@@ -230,7 +222,7 @@ public SimpleStringProperty CommitTextP;
 
 /////////////////////inbar check
     @FXML
-    public void ImportRepFromXmlOnAction() throws Exception {
+    public void ImportRepFromXmlOnAction() {
 
         String pathString =null;
         String SorO=null;
@@ -332,12 +324,9 @@ public SimpleStringProperty CommitTextP;
         Stage popUpWindow=new Stage();
         popUpWindow.initModality(Modality.APPLICATION_MODAL);
 
-        okButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                InputTextBox=newText.getText();
-                popUpWindow.close();
-            }
+        okButton.setOnAction(event -> {
+            InputTextBox=newText.getText();
+            popUpWindow.close();
         });
         FlowPane root = new FlowPane();
         root.setPadding(new Insets(10));
