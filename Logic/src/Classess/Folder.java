@@ -29,7 +29,7 @@ public class Folder implements FileObject{
     }
 
 
-    protected static class Component implements Comparable<Component>, FileObject {
+    public static class Component implements Comparable<Component>, FileObject {
         //members
         private FolderType type;
 

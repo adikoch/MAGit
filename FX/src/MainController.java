@@ -1,6 +1,4 @@
-import Classess.Branch;
-import Classess.Commit;
-import Classess.GitManager;
+import Classess.*;
 import com.fxgraph.graph.Graph;
 import com.fxgraph.graph.ICell;
 import com.fxgraph.graph.Model;
@@ -161,7 +159,10 @@ public class MainController {
 
         sb.append("The current status of WC is:\n");
         sb.append(System.lineSeparator());
-         Stage popUpWindow= new Stage();
+        Stage popUpWindow= new Stage();
+        Button closeButton = new Button("Close");
+        closeButton.setOnAction(event -> popUpWindow.close());
+
 
         popUpWindow.initModality(Modality.APPLICATION_MODAL);
         FlowPane root = new FlowPane();
@@ -185,7 +186,7 @@ public class MainController {
                         manager.getDeletedFiles().clear();
                         manager.getUpdatedFiles().clear();
 
-                        root.getChildren().addAll( new Label(sb.toString()));
+                        root.getChildren().addAll( new Label(sb.toString()),closeButton);
 
                         Scene scene = new Scene(root);
                         popUpWindow.setTitle("WC status");
@@ -271,13 +272,65 @@ public class MainController {
         }
         try {
             String FilesOfCommit = manager.showFilesOfCommit();
-            CommitTextP.set(FilesOfCommit);
-            //popUpMessage(FilesOfCommit);
+            //פונקציה שמקבלת סטרינג שמתאר את התכנים ויוצרת את התגיות האלה.
+            //אם זו תיקייה נפתחת רובריקה אם זה בלוב מראה את התוכן
+
+     //_______________________________________________________________________________קריאה לפונקציה אחת למטה ולשים אותה בחלק הנכון של המסך
+
+            //פה להוסיף את האקורדיון שמקבלת לתוך הקונטיינר הגדול
+
         } catch (Exception e) {
             popUpMessage("Opening zip file failed");
         }
     }
 
+    TreeItem showContentWithTags(String content){
+        //Accordion accordion= new Accordion();
+        //TitledPane
+        TreeItem menuBar = new TreeItem();
+        menuBar.setValue(showContentWithTagsRec(content));//add(showContentWithTagsRec(content));
+        return menuBar;
+    }
+
+    TreeItem showContentWithTagsRec(String content){
+
+        String[] checkKindArray;
+
+        String checkKind;
+        if(content.equals(""))
+            return null;
+
+        //getting the kind of the component
+        String[] currentLineArray=content.split("\n");
+        String currentLine=currentLineArray[0];
+        checkKindArray=currentLine.split(",");
+        checkKind=checkKindArray[2];
+        //checking if working :: popUpMessage(checkKind);
+
+        if(checkKind.equals("Folder"))
+        {
+            TreeItem menuBar = new TreeItem();
+            menuBar.setValue(checkKindArray[0]);//(checkKindArray[0]);
+            //currentLineArray.slice(1);
+            for(String s:currentLineArray)
+            {
+                menuBar.setValue(showContentWithTagsRec(s));
+            }
+            return menuBar;
+            //ליצור כזה עם חץ, ולתת לו להכיל את כל מה שמחזירה הרקורסיה
+            //כותרת TitledPane ליצור
+            //להכנס ברקורסיה על השורה הבאה (דילוג של שורה)
+        }
+        else//if(checkKind.equals("Blob"))
+        {
+            TreeItem menuItem= new TreeItem();
+            menuItem.setValue(checkKindArray[0]);
+            return menuItem;
+            //ליצור ניו של שורה בלי חץ ולהחזיר אותה
+            //להחזיר מהרקורסיה את הרובריקה של בלוב
+            //להוסיף את עצמי לתוך האקורדיון שכרגע נמצאת בו
+        }
+    }
     //Repository
 
     @FXML
@@ -286,6 +339,7 @@ public class MainController {
 
             popUpTextBox("Please enter the new username:");
             manager.updateNewUserNameInLogic(InputTextBox);
+            InputTextBox=null;
         } else {
             popUpMessage("There is no repository defined! no changes occurred");
         }
@@ -324,26 +378,6 @@ public class MainController {
 //        = selectedFile.getAbsolutePath();
         String absolutePath = getFileWithChooser("xml");
 
-
-        //popUpTextBox("Please enter the path to import xml from: ");
-        //pathString=InputTextBox;
-        //InputTextBox=null;
-//        if(!Files.exists(Paths.get(absolutePath)))
-//        {
-//            popUpMessage("The wanted path does not exist, please try again");
-//            ImportRepFromXmlOnAction();
-//            return;
-//        }
-//        if(pathString.length()<4 || !(pathString.substring(pathString.length() - 4).equals(".xml")))
-//        {
-//            pathString+="\\.xml";
-//        }
-//
-//        if(!Files.exists(Paths.get(pathString))) {
-//            popUpMessage("The wanted path is not an xml file, please try again");
-//            ImportRepFromXmlOnAction();
-//            return;
-//        }
 
         //i have a valid path from the user, can call ImportRepositoryFromXML with xmlPath
         try {
@@ -658,4 +692,7 @@ public class MainController {
     }
 }
 
-
+//משימות
+//לעשות שאנטר ילחץ על הכפתור של אוקיי
+//לסדר את התצוגה של הקבצים בתיקייה
+//

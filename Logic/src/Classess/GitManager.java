@@ -789,15 +789,11 @@ public class GitManager {
         for (Folder.Component c : rootFolder.getComponents()) {
 
             if (c.getComponentType().equals(FolderType.Blob)) {
-                builder.append(c.getComponentsStringFromComponent());
-                //return builder.toString();
+                builder.append(c.getComponentsStringFromComponent());                //return builder.toString();
                 //add blob component to string, return;
             } else {
 
                 builder.append(c.getComponentsStringFromComponent());
-                builder.append(System.lineSeparator());
-                builder.append(c.getComponentName());
-                builder.append(" items:");
                 builder.append(System.lineSeparator());
                 builder.append(showFilesOfCommitRec((Folder) c.getDirectObject(), toPrint));
 
