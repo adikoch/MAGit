@@ -312,10 +312,10 @@ public class GitManager {
             repPath += "\\";
         }
 
-        new File(repPath + repName + "\\.magit\\objects").mkdirs();
-        new File(repPath + repName + "\\.magit\\branches").mkdirs();
-        Path workingPath = Paths.get(repPath + repName + "\\");
-        this.GITRepository = (new Repository(workingPath, new Branch("Master")));
+        new File(repPath  + "\\.magit\\objects").mkdirs();
+        new File(repPath  + "\\.magit\\branches").mkdirs();
+        Path workingPath = Paths.get(repPath  + "\\");
+        this.GITRepository = new Repository(workingPath, new Branch("Master"));
         GITRepository.getHeadBranch().setPointedCommit(new Commit());
         //GITRepository.getHeadBranch().getPointedCommit().setRootfolder(workingPath.toString());
         GITRepository.getHeadBranch().getPointedCommit().setCommitFileContentToSHA();
@@ -325,7 +325,9 @@ public class GitManager {
         createFileInMagit(GITRepository.getHeadBranch().getPointedCommit(), workingPath);//commit
         createFileInMagit(GITRepository.getHeadBranch(), workingPath);
 
-        createFile("Head", "Master", Paths.get(repPath + repName + "\\.magit\\branches"), new Date().getTime());
+        createFile("Head", "Master", Paths.get(repPath  + "\\.magit\\branches"), new Date().getTime());
+        createFile("RepName", GITRepository.getRepositoryName(), Paths.get(repPath  + "\\.magit"), new Date().getTime());
+
 
         GITRepository.getBranchByName("Master").setPointedCommit(GITRepository.getHeadBranch().getPointedCommit());
 
@@ -342,12 +344,14 @@ public class GitManager {
 
     public void switchRepository(Path newRepPath) throws IOException, IllegalArgumentException //V
     {
-
         File f = Paths.get(newRepPath.toString() + "\\.magit\\branches\\Head").toFile();
         String content = readTextFile(newRepPath + "\\.magit\\branches\\" + f.getName());
-        String name = readTextFile(newRepPath + "\\.magit\\branches\\" + content);
+        //String name = readTextFile(newRepPath + "\\.magit\\branches\\" + content);
         this.GITRepository = new Repository(newRepPath);
 
+        File name = Paths.get(newRepPath.toString() + "\\.magit\\RepName").toFile();
+        String repname = readTextFile(name.getPath());
+        GITRepository.setRepositoryName(repname);
         this.GITRepository.getRepositorysBranchesObjects();
         GITRepository.Switch(newRepPath);
         GITRepository.setHeadBranch(GITRepository.getBranchByName(content));
@@ -621,16 +625,7 @@ public class GitManager {
             i++;
         }
 
-        StringBuilder sha1ContentToNewCommit = new StringBuilder();
-        int m = 0;
-           /* while(!st.isEmpty())
-            {
-
-                sha1ContentToNewCommit.append(st.get(m));
-                sha1ContentToNewCommit.append(System.lineSeparator());
-                m++;
-            }
-*/
+        br.close();
         Commit newCommit = new Commit(st);
         newCommit.setSHAContent(commitContent);
         return newCommit;
@@ -653,24 +648,7 @@ public class GitManager {
 
         return content.toString();
     }
-//    {
-//        String returnValue = "";
-//        String line;
-//        FileReader file;
-//
-//        file = new FileReader(filePath);
-//
-//
-//        BufferedReader reader = new BufferedReader(file);
-//
-//        while ((line = reader.readLine()) != null) {
-//            returnValue += line;
-//            returnValue+='\n';
-//        }
-//        returnValue.
-//        reader.close();
-//        return returnValue;
-//    }
+
 
     public static String getDateFromObject(Object date) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy-HH:mm:ss:SSS");
@@ -848,6 +826,8 @@ public class GitManager {
         }
         createMagitFiles();
         createFilesInWCFromCommitObject(GITRepository.getHeadBranch().getPointedCommit().getRootFolder(), GITRepository.getRepositoryPath());
+        createFile("RepName",GITRepository.getRepositoryName(), Paths.get(GITRepository.getRepositoryPath()  + "\\.magit"), new Date().getTime());
+
         this.userName = GITRepository.getHeadBranch().getPointedCommit().getChanger();
         this.blobTempMap.clear();
         this.folderTempMap.clear();
@@ -1026,45 +1006,7 @@ public class GitManager {
 
         writer.close();
     }
-//    public void checkValidation(MagitRepository oldRepository)
-//    {
-//        isFileXML();//1
-//        isTwoIdentifiedID(oldRepository);//2
-//        isBlobOrFolderRelateToFolder();//3+4+5
-//        isRootFolder();//6
-//        isBranchCommitExist();//7
-//        isHeadBranchExist();//8
-//
-//
-//    }
-//    public void isFileXML()//1
-//    {
-//
-//    }
-//    public void isTwoIdentifiedID(MagitRepository repo)//2
-//    {
-//        Iterator entries = commitMap.entrySet().iterator();
-//        while (entries.hasNext()) {
-//            Map.Entry thisEntry = (Map.Entry) entries.next();
-//            Commit c = (Commit) thisEntry.getValue();
-//        }
-//    }
-//    public void  isBlobOrFolderRelateToFolder()//3+4+5
-//    {
-//
-//    }
-//    public void isRootFolder()//6
-//    {
-//
-//    }
-//    public void  isBranchCommitExist()//7
-//    {
-//
-//    }
-//    public void isHeadBranchExist()//8
-//    {
-//
-//    }
+
 }
 
 //לתת אפשרות לעשות סוויץ רפוזטורי מתוך כלום
