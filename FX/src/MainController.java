@@ -275,13 +275,8 @@ public class MainController {
         try{
             Commit commit= manager.getCommitFromSha1UsingFiles(manager.getGITRepository().getRepositoryPath().toString(),commitSha1);
             Folder folderOfCommit= manager.generateFolderFromCommitObject(commit.getRootFolderSHA1());
-            //Folder rappingFolder= new Folder();
-            //ArrayList<Folder.Component> arrayList= new ArrayList<Folder.Component>();
-            //arrayList.add()
-            //rappingFolder.setComponents()//(new ArrayList<Folder.Component>(folderOfCommit));//folderOfCommit);
-            //TreeItem<String> toShow=showTreeLookRec(folderOfCommit);//להכניס אותו לסצנה ולהראות
             TreeItem<String> toShow= new TreeItem<>();
-            toShow.setValue("commit's info:");
+
 
             toShow.getChildren().add(showTreeLookRec(folderOfCommit));
             //showing
