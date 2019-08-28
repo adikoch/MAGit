@@ -1,6 +1,12 @@
+import Classess.*;
+import com.fxgraph.graph.Graph;
+import com.fxgraph.graph.ICell;
+import com.fxgraph.graph.Model;
 
 import Classess.GitManager;
 
+import generated.Item;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 import javafx.fxml.FXML;
@@ -24,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 import static java.lang.System.out;
 
@@ -71,6 +78,8 @@ public class MainController {
     Label dynamicStatusContent;
     @FXML
     Label CommitText;
+    @FXML
+    TreeView<String> tree;
 
     /*
      *
@@ -79,6 +88,7 @@ public class MainController {
     public SimpleStringProperty CommitTextP;
     public SimpleStringProperty RepositoryNameP;
     public SimpleStringProperty RepositoryPAthP;
+    public SimpleObjectProperty BraanchesP;
     public SimpleStringProperty dynamicStatusContentP;
 
     public Stage primaryStage;
@@ -148,13 +158,17 @@ public class MainController {
     }
 
 
+
     @FXML
     public void ShowStatusOnAction() {
         StringBuilder sb = new StringBuilder();
 
         sb.append("The current status of WC is:\n");
         sb.append(System.lineSeparator());
-        Stage popUpWindow = new Stage();
+        Stage popUpWindow= new Stage();
+        Button closeButton = new Button("Close");
+        closeButton.setOnAction(event -> popUpWindow.close());
+
 
         popUpWindow.initModality(Modality.APPLICATION_MODAL);
         FlowPane root = new FlowPane();
@@ -192,6 +206,7 @@ public class MainController {
         popUpWindow.close();
 
     }
+
 
 
 //    @FXML
@@ -261,13 +276,65 @@ public class MainController {
         }
         try {
             String FilesOfCommit = manager.showFilesOfCommit();
-            CommitTextP.set(FilesOfCommit);
-            //popUpMessage(FilesOfCommit);
+            //פונקציה שמקבלת סטרינג שמתאר את התכנים ויוצרת את התגיות האלה.
+            //אם זו תיקייה נפתחת רובריקה אם זה בלוב מראה את התוכן
+
+     //_______________________________________________________________________________קריאה לפונקציה אחת למטה ולשים אותה בחלק הנכון של המסך
+
+            //פה להוסיף את האקורדיון שמקבלת לתוך הקונטיינר הגדול
+
         } catch (Exception e) {
             popUpMessage("Opening zip file failed");
         }
     }
 
+    TreeItem showContentWithTags(String content){
+        //Accordion accordion= new Accordion();
+        //TitledPane
+        TreeItem menuBar = new TreeItem();
+        menuBar.setValue(showContentWithTagsRec(content));//add(showContentWithTagsRec(content));
+        return menuBar;
+    }
+
+    TreeItem showContentWithTagsRec(String content){
+
+        String[] checkKindArray;
+
+        String checkKind;
+        if(content.equals(""))
+            return null;
+
+        //getting the kind of the component
+        String[] currentLineArray=content.split("\n");
+        String currentLine=currentLineArray[0];
+        checkKindArray=currentLine.split(",");
+        checkKind=checkKindArray[2];
+        //checking if working :: popUpMessage(checkKind);
+
+        if(checkKind.equals("Folder"))
+        {
+            TreeItem menuBar = new TreeItem();
+            menuBar.setValue(checkKindArray[0]);//(checkKindArray[0]);
+            //currentLineArray.slice(1);
+            for(String s:currentLineArray)
+            {
+                menuBar.setValue(showContentWithTagsRec(s));
+            }
+            return menuBar;
+            //ליצור כזה עם חץ, ולתת לו להכיל את כל מה שמחזירה הרקורסיה
+            //כותרת TitledPane ליצור
+            //להכנס ברקורסיה על השורה הבאה (דילוג של שורה)
+        }
+        else//if(checkKind.equals("Blob"))
+        {
+            TreeItem menuItem= new TreeItem();
+            menuItem.setValue(checkKindArray[0]);
+            return menuItem;
+            //ליצור ניו של שורה בלי חץ ולהחזיר אותה
+            //להחזיר מהרקורסיה את הרובריקה של בלוב
+            //להוסיף את עצמי לתוך האקורדיון שכרגע נמצאת בו
+        }
+    }
     //Repository
 
     @FXML
@@ -276,6 +343,7 @@ public class MainController {
 
             popUpTextBox("Please enter the new username:");
             manager.updateNewUserNameInLogic(InputTextBox);
+            InputTextBox=null;
         } else {
             popUpMessage("There is no repository defined! no changes occurred");
         }
@@ -327,6 +395,7 @@ public class MainController {
                         isValid = true;
                         manager.deleteFilesInFolder(new File(e.getMessage()));
                         manager.deleteFilesInFolder(new File(e.getMessage() + "\\.magit"));
+
                         try {
                             Files.delete((Paths.get(e.getMessage())));
 
@@ -361,14 +430,49 @@ public class MainController {
         }
     }
 
+    public void popUpChooseBox(String textToUser) {
+        Label label = new Label(textToUser);
+        //TextField newText = new TextField();
+        Button okButton = new Button("OK");
 
+        Stage popUpWindow = new Stage();
+        popUpWindow.initModality(Modality.APPLICATION_MODAL);
+
+        ChoiceBox<String> menu = new ChoiceBox();
+        for (Branch b :manager.getGITRepository().getBranches())
+        {
+            String s = b.getBranchName();
+            //t.addEventHandler();
+            menu.getItems().add(s);
+        }
+        okButton.setOnAction(event -> {
+            InputTextBox = menu.getValue();
+            popUpWindow.close();
+        });
+
+        okButton.setDefaultButton(true);
+        FlowPane root = new FlowPane();
+        root.setPadding(new Insets(10));
+        root.setHgap(10);
+
+        root.getChildren().addAll(label,menu, okButton);
+
+        Scene scene = new Scene(root, 500, 120, Color.WHITE);
+        popUpWindow.setTitle("Submit text");
+        popUpWindow.setScene(scene);
+        popUpWindow.showAndWait();
+
+
+    }
     //פונקציה שמייצרת חלון חדש עם תיבת טקסט בפנים עם הטקסט שהיא מקלבת וכשלוחצים לה ok מחזירה לי את הטקסט שכתבו שם בתוך המשתנה מחלקה יוזראינפוט
     public void popUpTextBox(String textToUser) {
         Label label = new Label(textToUser);
         TextField newText = new TextField();
         Button okButton = new Button("OK");
+
         Stage popUpWindow = new Stage();
         popUpWindow.initModality(Modality.APPLICATION_MODAL);
+
         okButton.setOnAction(event -> {
             InputTextBox = newText.getText();
             popUpWindow.close();
@@ -419,6 +523,7 @@ public class MainController {
 
 
     }
+
     //שלוש פעולות בכל פעם שרוצה לקבל משהו מהמשתמש: קריאה לטקסטבוקס, לקיחת מה שחזר משם אל המשתנה הרצוי, איפוס המשתנה אינפוטטקסטבוקס
     @FXML
     public void CreateEmptyRepositoryOnAction() {
@@ -512,28 +617,24 @@ String repFolder;
             popUpMessage("There is no repository defined, no branches to show");
             return;
         }
-TreeView tree = new TreeView();
-        TreeViewHelper helper = new TreeViewHelper();
+        //tree = new TreeView();
         // Get the Products
-        ArrayList<TreeItem> products = helper.getProducts();
-        TreeItem rootItem = new TreeItem("Branches");
+//        TreeItem<String> rootItem = new TreeItem("Branches");
         // Add children to the root
-        rootItem.getChildren().addAll(manager.getGITRepository().getBranches());
+        TreeItem<String> rootItem = new TreeItem("Branches");
+
+        ArrayList<TreeItem<String>> products = new ArrayList<TreeItem<String>>();
+
+        for (Branch b :manager.getGITRepository().getBranches())
+        {
+            TreeItem t = new TreeItem(b.getBranchName());
+            //t.addEventHandler();
+            products.add(t);
+        }
+        rootItem.getChildren().addAll(products);
         // Set the Root Node
         tree.setRoot(rootItem);
-        VBox root = new VBox();
-        // Add the TreeView to the VBox
-        root.getChildren().add(tree);
-
-        // Create the Scene
-        Scene scene = new Scene(root,400,400);
-        // Add the Scene to the Stage
-        primaryStage.setScene(scene);
-        // Set the Title for the Scene
-        primaryStage.setTitle("TreeView Example 1");
-        // Display the stage
-        primaryStage.show();
-        popUpMessage(manager.getAllBranches());
+        //popUpMessage(manager.getAllBranches());
     }
 
     @FXML
@@ -573,7 +674,8 @@ TreeView tree = new TreeView();
             out.println("There is no repository defined, no branches to delete");
             return;
         }
-        popUpTextBox("Please enter the name of the branch to delete");
+        // popUpTextBox("Please enter the name of the branch to delete");
+        popUpChooseBox("Choose Branch For Checkout");
         String branchName = InputTextBox;
         InputTextBox = null;
         if (manager.getGITRepository().getBranchByName(branchName) != null) {
@@ -584,11 +686,8 @@ TreeView tree = new TreeView();
             } catch (Exception e) {
                 popUpMessage("Erasing the head branch is not a valid action, no changes occurred");
             }
+        } else
             popUpMessage("No such Branch exist!");
-
-        }
-
-
     }
 
     @FXML
@@ -597,14 +696,14 @@ TreeView tree = new TreeView();
             popUpMessage("There is no repository defined, cannot check out");
             return;
         }
-        popUpTextBox("Please enter the name of the branch to move over to");
+       // popUpTextBox("Please enter the name of the branch to move over to");
+        popUpChooseBox("Choose Branch For Checkout");
         String branchName = InputTextBox;
         InputTextBox = null;
 
         if (manager.getGITRepository().getBranchByName(branchName) != null) {
             try {
                 manager.ExecuteCommit("", false);
-                dynamicStatusContentP.set("Checkout was executed");
                 if (manager.getDeletedFiles().size() != 0 ||
                         manager.getUpdatedFiles().size() != 0 ||
                         manager.getCreatedFiles().size() != 0) {
@@ -634,8 +733,63 @@ TreeView tree = new TreeView();
 
     @FXML
     public void ResetBranchOnAction() {
+        Boolean isExist=false;
+        Path pathToSearchZip=null;
+        Commit newCommit;
+        Folder folderOfCommit;
+        popUpTextBox("Please enter the SHA of commit for head Branch");
+        String sha = InputTextBox;
+            pathToSearchZip=Paths.get(manager.getGITRepository().getRepositoryPath().toString()+"\\.magit\\objects\\"+sha+".zip");//c:\rep\.magit\objects
+            //isExist=Files.exists(pathToSearchZip);//isExist true=> לבדוק אם זה באמת זיפ של קומיט או של בלוב או פולדר
+        //sha1 takin
+
+        try {newCommit= manager.getCommitFromSha1UsingFiles(manager.getGITRepository().getRepositoryPath().toString(), sha);}
+        catch (Exception e) {
+            out.println(e.getMessage());
+            return;}
+        try {newCommit.setRootFolder(manager.generateFolderFromCommitObject(newCommit.getRootFolderSHA1()));}
+        catch(Exception e) {out.println(e.getMessage());}
+
+        //checking if there are open changes in the WC
+        try {
+            manager.ExecuteCommit("", false);
+            if (manager.getDeletedFiles().size() != 0 ||
+                    manager.getUpdatedFiles().size() != 0 ||
+                    manager.getCreatedFiles().size() != 0) {
+                popUpConfirmationBox("There are unsaved changes in the WC. would you like to save it before checkout?","Yes","No");
+                out.println("There are unsaved changes in the WC. would you like to save it before checkout? (yes/no");
+                String toCommit = InputTextBox;
+                if (toCommit.toLowerCase().equals("1")) {
+                    try{
+                        manager.ExecuteCommit("commit before checkout to " +manager.getGITRepository().getHeadBranch() + "Branch", true);}
+                    catch(Exception er) {
+                        out.println("Unable to create zip file");
+                    }
+                }
+            }
+
+            //text file update:
+            manager.updateFile(sha);
+            manager.getGITRepository().getHeadBranch().setPointedCommit(newCommit);
+
+
+            manager.executeCheckout(manager.getGITRepository().getHeadBranch().getBranchName());
+            manager.getCreatedFiles().clear();
+            manager.getDeletedFiles().clear();
+            manager.getUpdatedFiles().clear();
+        } catch (Exception er) {
+            out.println("Unable to create zip file");
+        }
+
+//        try {manager.switchPointingOfHeadBranch(userInput);}//with the wanted sha1, after checking if there are open changes and deciding what to do
+//        catch (Exception err) {
+//            out.println(err.getMessage());
+//            return;}
+      //  ShowFilesOfCurrCommit();
 
     }
+
+
 
     public void popUpMessage(String toShow) {
         Stage popUpWindow = new Stage();
@@ -685,4 +839,7 @@ TreeView tree = new TreeView();
     }
 }
 
-
+//משימות
+//לעשות שאנטר ילחץ על הכפתור של אוקיי
+//לסדר את התצוגה של הקבצים בתיקייה
+//

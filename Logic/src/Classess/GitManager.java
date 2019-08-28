@@ -623,16 +623,7 @@ public class GitManager {
             i++;
         }
 
-        StringBuilder sha1ContentToNewCommit = new StringBuilder();
-        int m = 0;
-           /* while(!st.isEmpty())
-            {
-
-                sha1ContentToNewCommit.append(st.get(m));
-                sha1ContentToNewCommit.append(System.lineSeparator());
-                m++;
-            }
-*/
+        br.close();
         Commit newCommit = new Commit(st);
         newCommit.setSHAContent(commitContent);
         return newCommit;
@@ -655,24 +646,7 @@ public class GitManager {
 
         return content.toString();
     }
-//    {
-//        String returnValue = "";
-//        String line;
-//        FileReader file;
-//
-//        file = new FileReader(filePath);
-//
-//
-//        BufferedReader reader = new BufferedReader(file);
-//
-//        while ((line = reader.readLine()) != null) {
-//            returnValue += line;
-//            returnValue+='\n';
-//        }
-//        returnValue.
-//        reader.close();
-//        return returnValue;
-//    }
+
 
     public static String getDateFromObject(Object date) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy-HH:mm:ss:SSS");
@@ -793,15 +767,11 @@ public class GitManager {
         for (Folder.Component c : rootFolder.getComponents()) {
 
             if (c.getComponentType().equals(FolderType.Blob)) {
-                builder.append(c.getComponentsStringFromComponent());
-                //return builder.toString();
+                builder.append(c.getComponentsStringFromComponent());                //return builder.toString();
                 //add blob component to string, return;
             } else {
 
                 builder.append(c.getComponentsStringFromComponent());
-                builder.append(System.lineSeparator());
-                builder.append(c.getComponentName());
-                builder.append(" items:");
                 builder.append(System.lineSeparator());
                 builder.append(showFilesOfCommitRec((Folder) c.getDirectObject(), toPrint));
 
@@ -1034,45 +1004,7 @@ public class GitManager {
 
         writer.close();
     }
-//    public void checkValidation(MagitRepository oldRepository)
-//    {
-//        isFileXML();//1
-//        isTwoIdentifiedID(oldRepository);//2
-//        isBlobOrFolderRelateToFolder();//3+4+5
-//        isRootFolder();//6
-//        isBranchCommitExist();//7
-//        isHeadBranchExist();//8
-//
-//
-//    }
-//    public void isFileXML()//1
-//    {
-//
-//    }
-//    public void isTwoIdentifiedID(MagitRepository repo)//2
-//    {
-//        Iterator entries = commitMap.entrySet().iterator();
-//        while (entries.hasNext()) {
-//            Map.Entry thisEntry = (Map.Entry) entries.next();
-//            Commit c = (Commit) thisEntry.getValue();
-//        }
-//    }
-//    public void  isBlobOrFolderRelateToFolder()//3+4+5
-//    {
-//
-//    }
-//    public void isRootFolder()//6
-//    {
-//
-//    }
-//    public void  isBranchCommitExist()//7
-//    {
-//
-//    }
-//    public void isHeadBranchExist()//8
-//    {
-//
-//    }
+
 }
 
 //לתת אפשרות לעשות סוויץ רפוזטורי מתוך כלום
