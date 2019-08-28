@@ -17,6 +17,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
@@ -34,6 +35,7 @@ import java.util.Scanner;
 
 import static java.lang.System.out;
 
+//import java.awt.*;
 
 public class MainController {
 
@@ -157,11 +159,9 @@ public class MainController {
 
     }
 
-
-
     @FXML
     public void ShowStatusOnAction() {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb= new StringBuilder();
 
         sb.append("The current status of WC is:\n");
         sb.append(System.lineSeparator());
@@ -276,65 +276,73 @@ public class MainController {
         }
         try {
             String FilesOfCommit = manager.showFilesOfCommit();
+
             //פונקציה שמקבלת סטרינג שמתאר את התכנים ויוצרת את התגיות האלה.
             //אם זו תיקייה נפתחת רובריקה אם זה בלוב מראה את התוכן
 
      //_______________________________________________________________________________קריאה לפונקציה אחת למטה ולשים אותה בחלק הנכון של המסך
 
             //פה להוסיף את האקורדיון שמקבלת לתוך הקונטיינר הגדול
-
+            showFilesWithTree(FilesOfCommit);
         } catch (Exception e) {
             popUpMessage("Opening zip file failed");
         }
     }
 
-    TreeItem showContentWithTags(String content){
-        //Accordion accordion= new Accordion();
-        //TitledPane
-        TreeItem menuBar = new TreeItem();
-        menuBar.setValue(showContentWithTagsRec(content));//add(showContentWithTagsRec(content));
-        return menuBar;
-    }
+   public void showFilesWithTree(String content)
+   {
+       primaryStage.setTitle("Tree View Sample");
 
-    TreeItem showContentWithTagsRec(String content){
+       TreeItem<String> rootItem = new TreeItem<> ("Commit's info:");
+       rootItem.setExpanded(true);
 
-        String[] checkKindArray;
+       //turning the string to array of strings
+       String[] LinesArray=content.split("\n");
+       for(int i=0;i<LinesArray.length;i++)
+       {if(!LinesArray[i].equals("\r"))rootItem.getChildren().addAll(showFilesWithTreeRec(LinesArray, i));}
 
-        String checkKind;
-        if(content.equals(""))
+//       TreeItem<String> item = new TreeItem<> ("Message" + i);
+//       rootItem.getChildren().add(item);
+
+       TreeView<String> tree = new TreeView<> (rootItem);
+       StackPane root = new StackPane();
+       root.getChildren().add(tree);
+       primaryStage.setScene(new Scene(root, 300, 250));
+       primaryStage.show();
+   }
+
+    public TreeItem<String> showFilesWithTreeRec(String[] linesArr, int index)
+    {
+        String currentLine= linesArr[index];
+        String[] parsedLine=currentLine.split(",");
+        String checkKind=parsedLine[2];
+
+        if(currentLine.equals("\r"))
             return null;
-
-        //getting the kind of the component
-        String[] currentLineArray=content.split("\n");
-        String currentLine=currentLineArray[0];
-        checkKindArray=currentLine.split(",");
-        checkKind=checkKindArray[2];
-        //checking if working :: popUpMessage(checkKind);
-
-        if(checkKind.equals("Folder"))
+        if(linesArr.length-1==index)
         {
-            TreeItem menuBar = new TreeItem();
-            menuBar.setValue(checkKindArray[0]);//(checkKindArray[0]);
-            //currentLineArray.slice(1);
-            for(String s:currentLineArray)
+            return  null;
+        }
+        //for(int i=0;i<linesArr.length;i++){
+            if(checkKind.equals("Folder"))
             {
-                menuBar.setValue(showContentWithTagsRec(s));
+                TreeItem<String> newItem = new TreeItem<> (parsedLine[0]);
+                newItem.setExpanded(true);
+                newItem.getChildren().addAll(showFilesWithTreeRec(linesArr,index+1));
+                return newItem;
+
             }
-            return menuBar;
-            //ליצור כזה עם חץ, ולתת לו להכיל את כל מה שמחזירה הרקורסיה
-            //כותרת TitledPane ליצור
-            //להכנס ברקורסיה על השורה הבאה (דילוג של שורה)
-        }
-        else//if(checkKind.equals("Blob"))
-        {
-            TreeItem menuItem= new TreeItem();
-            menuItem.setValue(checkKindArray[0]);
-            return menuItem;
-            //ליצור ניו של שורה בלי חץ ולהחזיר אותה
-            //להחזיר מהרקורסיה את הרובריקה של בלוב
-            //להוסיף את עצמי לתוך האקורדיון שכרגע נמצאת בו
-        }
+            else // "Blob"
+            {
+                TreeItem<String>  newItem =new TreeItem<> (parsedLine[0]);
+                newItem.setExpanded(false);
+                return newItem;
+            }
+
+        //}
+
     }
+
     //Repository
 
     @FXML
@@ -671,7 +679,7 @@ String repFolder;
     @FXML
     public void DeleteBranchOnAction() {
         if (manager.getGITRepository() == null) {
-            out.println("There is no repository defined, no branches to delete");
+            popUpMessage("There is no repository defined, no branches to delete");
             return;
         }
         // popUpTextBox("Please enter the name of the branch to delete");
@@ -704,6 +712,7 @@ String repFolder;
         if (manager.getGITRepository().getBranchByName(branchName) != null) {
             try {
                 manager.ExecuteCommit("", false);
+                dynamicStatusContentP.set("Checkout was executed");
                 if (manager.getDeletedFiles().size() != 0 ||
                         manager.getUpdatedFiles().size() != 0 ||
                         manager.getCreatedFiles().size() != 0) {
@@ -733,6 +742,10 @@ String repFolder;
 
     @FXML
     public void ResetBranchOnAction() {
+        if (manager.getGITRepository() == null) {
+            popUpMessage("There is no repository defined, no branches defined yet");
+            return;
+        }
         Boolean isExist=false;
         Path pathToSearchZip=null;
         Commit newCommit;
