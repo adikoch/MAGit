@@ -42,6 +42,9 @@ public class Repository {
     }
 
     //get\set
+
+    public void setRepositoryName(String repositoryName) { this.repositoryName = repositoryName; }
+
     public Map<String, Commit> getCommitMap() { return commitMap; }
 
     public void setBranches(HashSet<Branch> branches) { this.branches = branches; }
