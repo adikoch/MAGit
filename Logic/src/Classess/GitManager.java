@@ -428,6 +428,8 @@ public class GitManager {
         }
     }
 
+
+
     public Folder generateFolderFromCommitObject(String rootFolderName) throws IOException {//V
         Path ObjectPath = Paths.get(GITRepository.getRepositoryPath().toString() + "\\.magit\\Objects");
         String folderContent = extractZipFile(Paths.get(ObjectPath + "\\" + rootFolderName + ".zip"));

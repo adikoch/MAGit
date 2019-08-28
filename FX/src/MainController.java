@@ -2,6 +2,7 @@ import Classess.*;
 import com.fxgraph.graph.Graph;
 import com.fxgraph.graph.ICell;
 import com.fxgraph.graph.Model;
+import generated.MagitRepository;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -263,76 +265,67 @@ public class MainController {
     }
 
     public void ShowCommitFilesOnAction() {
-        if (manager.getGITRepository() == null) {
-            popUpMessage("There is no repository defined, therefor no active branch defined");
-            return;
+        //לבקש שא1 של קומיט
+        //ליצור ממנו פולדר
+        //להכנס ברקורסיה על הפולדרים ולכל אחד אם בלוב ליצור בלי חץ ולהחזיר אם הוא פולדר ליצור כזה עם חץ ולהוסיף אליו את כל מה שחוזר מהרקורסיה
+        popUpTextBox("Please enter the sha1 of the wanted commit");
+        String commitSha1= InputTextBox;
+        InputTextBox= null;
+
+        try{
+            Commit commit= manager.getCommitFromSha1UsingFiles(manager.getGITRepository().getRepositoryPath().toString(),commitSha1);
+            Folder folderOfCommit= manager.generateFolderFromCommitObject(commit.getRootFolderSHA1());
+            //Folder rappingFolder= new Folder();
+            //ArrayList<Folder.Component> arrayList= new ArrayList<Folder.Component>();
+            //arrayList.add()
+            //rappingFolder.setComponents()//(new ArrayList<Folder.Component>(folderOfCommit));//folderOfCommit);
+            //TreeItem<String> toShow=showTreeLookRec(folderOfCommit);//להכניס אותו לסצנה ולהראות
+            TreeItem<String> toShow= new TreeItem<>();
+            toShow.setValue("commit's info:");
+
+            toShow.getChildren().add(showTreeLookRec(folderOfCommit));
+            //showing
+            TreeView<String> tree = new TreeView<> (toShow);
+            StackPane root = new StackPane();
+            root.getChildren().add(tree);
+            primaryStage.setScene(new Scene(root, 300, 250));
+            primaryStage.show();
+
+
         }
+        catch(Exception e){popUpTextBox("Unable to generate commit using the files");}
+
         try {
             String FilesOfCommit = manager.showFilesOfCommit();
+            out.println(FilesOfCommit);
 
-            //פונקציה שמקבלת סטרינג שמתאר את התכנים ויוצרת את התגיות האלה.
-            //אם זו תיקייה נפתחת רובריקה אם זה בלוב מראה את התוכן
 
-     //_______________________________________________________________________________קריאה לפונקציה אחת למטה ולשים אותה בחלק הנכון של המסך
-
-            //פה להוסיף את האקורדיון שמקבלת לתוך הקונטיינר הגדול
-            showFilesWithTree(FilesOfCommit);
         } catch (Exception e) {
             popUpMessage("Opening zip file failed");
         }
     }
 
-   public void showFilesWithTree(String content)
-   {
-       primaryStage.setTitle("Tree View Sample");
 
-       TreeItem<String> rootItem = new TreeItem<> ("Commit's info:");
-       rootItem.setExpanded(true);
+    public TreeItem<String> showTreeLookRec(Folder folder){
+        TreeItem<String> folderItem = new TreeItem<String>();// (c.getComponentName());
 
-       //turning the string to array of strings
-       String[] LinesArray=content.split("\n");
-       for(int i=0;i<LinesArray.length;i++)
-       {if(!LinesArray[i].equals("\r"))rootItem.getChildren().addAll(showFilesWithTreeRec(LinesArray, i));}
-
-//       TreeItem<String> item = new TreeItem<> ("Message" + i);
-//       rootItem.getChildren().add(item);
-
-       TreeView<String> tree = new TreeView<> (rootItem);
-       StackPane root = new StackPane();
-       root.getChildren().add(tree);
-       primaryStage.setScene(new Scene(root, 300, 250));
-       primaryStage.show();
-   }
-
-    public TreeItem<String> showFilesWithTreeRec(String[] linesArr, int index)
-    {
-        String currentLine= linesArr[index];
-        String[] parsedLine=currentLine.split(",");
-        String checkKind=parsedLine[2];
-
-        if(currentLine.equals("\r"))
-            return null;
-        if(linesArr.length-1==index)
+        for(Folder.Component c: folder.getComponents())
         {
-            return  null;
+            if(c.getComponentType().equals(FolderType.Folder))
+            {
+                folderItem.setValue(c.getComponentName());
+                folderItem.setExpanded(true);
+                Folder recFolder= (Folder) c.getDirectObject();
+                folderItem.getChildren().add(showTreeLookRec(recFolder));
+            }
+            if(c.getComponentType().equals(FolderType.Blob))
+            {
+                folderItem.setExpanded(false);
+                folderItem.setValue(c.getComponentName());
+            }
+
         }
-        //for(int i=0;i<linesArr.length;i++){
-            if(checkKind.equals("Folder"))
-            {
-                TreeItem<String> newItem = new TreeItem<> (parsedLine[0]);
-                newItem.setExpanded(true);
-                newItem.getChildren().addAll(showFilesWithTreeRec(linesArr,index+1));
-                return newItem;
-
-            }
-            else // "Blob"
-            {
-                TreeItem<String>  newItem =new TreeItem<> (parsedLine[0]);
-                newItem.setExpanded(false);
-                return newItem;
-            }
-
-        //}
+        return folderItem;
 
     }
 
@@ -410,7 +403,7 @@ public class MainController {
 
                     }// delete the existing, prepering for loading , need the path of the folder to erase(c:\repo1)
                     catch (IOException e3) {
-                        popUpMessage("Could not delete the old reposetory, check if it is open some where else");
+                        popUpMessage("Could not delete the old repository, check if it is open some where else");
                     }//ואיך שהוא לחזור לתפריט הראשי
                     /////
                     try {

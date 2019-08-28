@@ -24,7 +24,7 @@ public class Folder implements FileObject{
 //        components = new ArrayList<>();
 //        components.add(c);
 //    }
-    Folder(ArrayList<Component> list) {
+    public Folder(ArrayList<Component> list) {
         components = list;
     }
 
@@ -69,11 +69,11 @@ public class Folder implements FileObject{
             this.directObject = directObject;
         }
 
-        FolderType getComponentType() {
+        public FolderType getComponentType() {
             return type;
         }
 
-        String getComponentSHA1() {
+        public String getComponentSHA1() {
             return Sha1;
         }
 
@@ -81,11 +81,11 @@ public class Folder implements FileObject{
             Sha1 = sha1;
         }
 
-        String getComponentName() {
+        public String getComponentName() {
             return name;
         }
 
-        String getFolderSHA1() {
+        public String getFolderSHA1() {
             return Sha1;
         }
 
@@ -120,7 +120,7 @@ public class Folder implements FileObject{
     }
 
     //con
-    Folder() // creating by XML or new empty root
+    public Folder() // creating by XML or new empty root
     {
         components = new ArrayList<>();
 
@@ -141,7 +141,7 @@ public class Folder implements FileObject{
         this.components = components;
     }
 
-    ArrayList<Component> getComponents() {
+    public ArrayList<Component> getComponents() {
         return this.components;
     }
 
