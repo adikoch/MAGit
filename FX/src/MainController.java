@@ -286,10 +286,11 @@ public class MainController {
         try{
             Commit commit= manager.getCommitFromSha1UsingFiles(manager.getGITRepository().getRepositoryPath().toString(),commitSha1);
             Folder folderOfCommit= manager.generateFolderFromCommitObject(commit.getRootFolderSHA1());
-            TreeItem<String> toShow= new TreeItem<>();
+            TreeItem<String> toShow;//= new TreeItem<>(manager.getGITRepository().getRepositoryName());
 
+            toShow=showTreeLookRec(folderOfCommit,manager.getGITRepository().getRepositoryPath().toString());
+            toShow.setExpanded(true);
 
-            toShow.getChildren().add(showTreeLookRec(folderOfCommit));
             //showing
             TreeView<String> tree = new TreeView<> (toShow);
             StackPane root = new StackPane();
@@ -312,23 +313,30 @@ public class MainController {
     }
 
 
-    public TreeItem<String> showTreeLookRec(Folder folder){
-        TreeItem<String> folderItem = new TreeItem<String>();// (c.getComponentName());
+    public TreeItem<String> showTreeLookRec(Folder folder, String mainName){
+        TreeItem<String> folderItem = new TreeItem<String>(mainName);// (c.getComponentName());
 
         for(Folder.Component c: folder.getComponents())
         {
+            TreeItem<String> subFolderItem;// = new TreeItem<String>(c.getComponentName());// ();
+
             if(c.getComponentType().equals(FolderType.Folder))
             {
-                folderItem.setValue(c.getComponentName());
-                folderItem.setExpanded(true);
                 Folder recFolder= (Folder) c.getDirectObject();
-                folderItem.getChildren().add(showTreeLookRec(recFolder));
+                subFolderItem=showTreeLookRec(recFolder ,c.getComponentName());
+                //subFolderItem.setValue(c.getComponentName());
+                subFolderItem.setExpanded(false);
+                //subFolderItem.getChildren().add();
+
+
             }
-            if(c.getComponentType().equals(FolderType.Blob))
+            else//if(c.getComponentType().equals(FolderType.Blob))
             {
-                folderItem.setExpanded(false);
-                folderItem.setValue(c.getComponentName());
+                subFolderItem = new TreeItem<>(c.getComponentName());
+                //subFolderItem.setExpanded(false);
+                //subFolderItem.setValue(c.getComponentName());
             }
+            folderItem.getChildren().add(subFolderItem);
 
         }
         return folderItem;
