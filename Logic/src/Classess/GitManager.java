@@ -2,7 +2,7 @@ package Classess;
 
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import generated.*;
-import puk.team.course.magit.ancestor.finder.AncestorFinder;
+//import puk.team.course.magit.ancestor.finder.AncestorFinder;
 
 
 import javax.xml.bind.*;
@@ -319,6 +319,7 @@ public class GitManager {
         new File(repPath + "\\.magit\\branches").mkdirs();
         Path workingPath = Paths.get(repPath + "\\");
         this.GITRepository = new Repository(workingPath, new Branch("Master"));
+        this.GITRepository.setRepositoryName(repName);
         GITRepository.getHeadBranch().setPointedCommit(new Commit());
         //GITRepository.getHeadBranch().getPointedCommit().setRootfolder(workingPath.toString());
         GITRepository.getHeadBranch().getPointedCommit().setCommitFileContentToSHA();
@@ -347,7 +348,7 @@ public class GitManager {
 
     public void switchRepository(Path newRepPath) throws IOException, IllegalArgumentException //V
     {
-        File f = Paths.get(newRepPath.toString() + "\\.magit\\branches\\Head").toFile();
+        File f = Paths.get(newRepPath.toString() + "\\.magit\\branches\\Head").toFile();//הקובץ הד
         String content = readTextFile(newRepPath + "\\.magit\\branches\\" + f.getName());
         //String name = readTextFile(newRepPath + "\\.magit\\branches\\" + content);
         this.GITRepository = new Repository(newRepPath);
