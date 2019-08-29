@@ -10,5 +10,6 @@
     <orderEntry type="module" module-name="Logic" />
     <orderEntry type="library" name="commons-codec-1.12" level="project" />
     <orderEntry type="library" name="fxgraph-0.0.3" level="project" />
+    <orderEntry type="library" name="AncestorFinder" level="project" />
   </component>
 </module>
