@@ -28,6 +28,7 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -83,15 +84,17 @@ public class MainController {
     @FXML
     Label dynamicStatusContent;
     @FXML
-    Label CommitText;
+    TreeView<String> CommitText;
     @FXML
     TreeView<String> tree;
+    @FXML
+    Button merge;
 
     /*
      *
      * */
 
-    public SimpleStringProperty CommitTextP;
+    public SimpleObjectProperty CommitTextP;
     public SimpleStringProperty RepositoryNameP;
     public SimpleStringProperty RepositoryPAthP;
     public SimpleObjectProperty BraanchesP;
@@ -106,7 +109,7 @@ public class MainController {
         RepositoryNameP = new SimpleStringProperty();
         RepositoryPAthP = new SimpleStringProperty();
         dynamicStatusContentP = new SimpleStringProperty();
-        CommitTextP = new SimpleStringProperty();
+        CommitTextP = new SimpleObjectProperty();
     }
 
 
@@ -114,7 +117,7 @@ public class MainController {
         RepName.textProperty().bind(RepositoryNameP);
         RepPath.textProperty().bind(RepositoryPAthP);
         dynamicStatusContent.textProperty().bind(dynamicStatusContentP);
-        CommitText.textProperty().bind(CommitTextP);
+        //CommitText.().bind(CommitTextP);
     }
 
     public void setPrimaryStage(Stage primaryStage) {
@@ -292,15 +295,14 @@ public class MainController {
             toShow.setExpanded(true);
 
             //showing
-            TreeView<String> tree = new TreeView<> (toShow);
-            StackPane root = new StackPane();
-            root.getChildren().add(tree);
-            primaryStage.setScene(new Scene(root, 300, 250));
-            primaryStage.show();
-
-
+            //TreeView<String> comtree = new TreeView<> (toShow);
+            //StackPane root = new StackPane();
+            //root.getChildren().add(comtree);
+           // primaryStage.setScene(new Scene(root, 300, 250));
+            //primaryStage.show();
+            CommitText.setRoot(toShow);
         }
-        catch(Exception e){popUpTextBox("Unable to generate commit using the files");}
+        catch(Exception e){popUpMessage("Unable to generate commit using the files");}
 
         try {
             String FilesOfCommit = manager.showFilesOfCommit();
@@ -686,6 +688,33 @@ String repFolder;
 
         //valid
 
+    }
+    @FXML
+    public void mergeTwoBranchesOnAction() throws Exception {
+        if (manager.getGITRepository() == null) {
+            popUpMessage("There is no repository defined, cannot creat new branch");
+            return;
+        }
+        String theirBranchName;
+
+        popUpTextBox("Please enter the name of the second branch");
+
+        theirBranchName = InputTextBox;//getting the name
+try {
+    if (manager.getGITRepository().getBranchByName(theirBranchName) != null) //checking if exist already
+    {
+        manager.merge(theirBranchName);
+        return;
+
+    } else {
+        popUpMessage("Branch does not exist, please enter a name");
+
+    }
+}
+        catch (InvocationTargetException e)
+        {
+            out.println(e.getCause());
+        }
     }
 
     @FXML

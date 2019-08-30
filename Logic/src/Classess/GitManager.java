@@ -1,8 +1,10 @@
 package Classess;
 
+import com.sun.xml.internal.ws.api.Component;
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import generated.*;
 import puk.team.course.magit.ancestor.finder.AncestorFinder;
+import puk.team.course.magit.ancestor.finder.CommitRepresentative;
 
 
 import javax.xml.bind.*;
@@ -16,6 +18,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -92,10 +95,10 @@ public class GitManager {
 
             if (isCreateZip) {
                 Commit c = new Commit(description, userName);
-                String anotherPrev = GITRepository.getHeadBranch().getPointedCommit().getSHA1PreveiousCommit();//האם יש עוד אבא
-                if (anotherPrev != null) {
-                    c.setSHA1anotherPreveiousCommit(anotherPrev);
-                }
+//                String anotherPrev = GITRepository.getHeadBranch().getPointedCommit().getSHA1PreveiousCommit();//האם יש עוד אבא
+//                if (anotherPrev != null) {
+//                    c.setSHA1anotherPreveiousCommit(anotherPrev);
+//                }
                 GITRepository.getHeadBranch().setPointedCommit(c); //creation
                 GITRepository.getHeadBranch().getPointedCommit().setSHA1PreveiousCommit(prevCommitSHA1); //setting old commits sha1
                 GITRepository.getHeadBranch().getPointedCommit().setRootFolder(newFolder); //setting old commit
@@ -318,7 +321,7 @@ public class GitManager {
         new File(repPath + "\\.magit\\objects").mkdirs();
         new File(repPath + "\\.magit\\branches").mkdirs();
         Path workingPath = Paths.get(repPath + "\\");
-        this.GITRepository = new Repository(workingPath, new Branch("Master"));
+        this.GITRepository = new Repository(workingPath, new Branch("Master"),repName);
         GITRepository.getHeadBranch().setPointedCommit(new Commit());
         //GITRepository.getHeadBranch().getPointedCommit().setRootfolder(workingPath.toString());
         GITRepository.getHeadBranch().getPointedCommit().setCommitFileContentToSHA();
@@ -515,10 +518,8 @@ public class GitManager {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-
-            reader.close();
         }
+        reader.close();
         return out;
     }
 
@@ -1015,6 +1016,47 @@ public class GitManager {
 
         writer.close();
     }
+   public void merge(String theirBranchName) throws Exception {
+       String BranchesPath = GITRepository.getRepositoryPath() + "\\.magit\\branches\\";
+       String ObjectsPath = GITRepository.getRepositoryPath() + "\\.magit\\objects\\";
+
+       Branch their = getGITRepository().getBranchByName(theirBranchName);
+       //לבנות פולדר חדש
+       //לשנות הצבעה של ההד אליו
+       //לשנות ןןרקינד קופי
+       Folder mergedFolder = new Folder();
+        Folder oursFolder = getGITRepository().getHeadBranch().getPointedCommit().getRootFolder();
+        Folder theirsFolder = getGITRepository().getBranchByName(theirBranchName).getPointedCommit().getRootFolder();
+       Function<String, CommitRepresentative> sha1ToCommit = s -> GITRepository.sha1ToCommit(s);
+        AncestorFinder AF = new AncestorFinder(sha1ToCommit);
+        String fathersha1 = AF.traceAncestor(GITRepository.getHeadBranch().getPointedCommitSHA1(),their.getPointedCommitSHA1());
+        Folder fatherFolder = GITRepository.getCommitMap().get(fathersha1).getRootFolder();// = traceAncestor
+
+       mergeBranches(oursFolder,theirsFolder,fatherFolder, mergedFolder );
+       deleteFilesInFolder(GITRepository.getRepositoryPath().toFile());
+
+//take care of commit
+       Commit c = new Commit("Merge of head and " + theirBranchName, userName);
+//       String anotherPrev = GITRepository.getHeadBranch().getPointedCommit().getSHA1PreveiousCommit();//האם יש עוד אבא
+//       if (anotherPrev != null) {
+//           c.setSHA1anotherPreveiousCommit(anotherPrev);
+//       }
+       c.setSHA1PreveiousCommit(GITRepository.getHeadBranch().getPointedCommit().getSHA());
+       c.setSHA1anotherPreveiousCommit(their.getPointedCommit().getSHA());
+       c.setRootFolder(mergedFolder);
+       c.setCommitFileContentToSHA();
+       c.setRootFolderSHA1(generateSHA1FromString(mergedFolder.getFolderContentString()));
+       GITRepository.getCommitList().put(c.getSHA(), c); //adding to commits list of the current reposetory
+
+       createFile(GITRepository.getHeadBranch().getBranchName(), c.getSHA(),Paths.get(BranchesPath), new Date().getTime());
+       GITRepository.getHeadBranch().setPointedCommitSHA1(c.getSHA());
+       GITRepository.getHeadBranch().setPointedCommit(c); //creation
+
+       createZipFile(Paths.get(ObjectsPath), generateSHA1FromString(mergedFolder.getFolderContentString()), mergedFolder.getFolderContentString());
+
+       createFileInMagit(GITRepository.getHeadBranch().getPointedCommit(), GITRepository.getRepositoryPath());
+       createFilesInWCFromCommitObject(c.getRootFolder(),GITRepository.getRepositoryPath());
+   }
 
     public void mergeBranches(Folder oursFolder, Folder theirsFolder,Folder fatherFolder, Folder mergedFolder ) {
         //getFather;
@@ -1129,7 +1171,17 @@ public class GitManager {
                 }
                 Folder newMergeFolder = new Folder();
                 mergeBranches(our,their,father,newMergeFolder);
-                mergedFolder.getComponents().add(new Folder.Component(a,generateSHA1FromString(newMergeFolder.getFolderContentString()), FolderType.Folder, userName, getDateFromObject(new Date())));
+                //check if there was no chnge- take our
+
+                if(generateSHA1FromString(newMergeFolder.getFolderContentString()).equals(generateSHA1FromString(their.getFolderContentString())))
+                    newMergeFolder = theirsFolder;
+                if(generateSHA1FromString(newMergeFolder.getFolderContentString()).equals(generateSHA1FromString(father.getFolderContentString())))
+                    newMergeFolder = fatherFolder;
+                if(generateSHA1FromString(newMergeFolder.getFolderContentString()).equals(generateSHA1FromString(our.getFolderContentString())))
+                    newMergeFolder = oursFolder;
+                Folder.Component c = new Folder.Component(a,generateSHA1FromString(newMergeFolder.getFolderContentString()), FolderType.Folder, userName, getDateFromObject(new Date()));
+                c.setDirectObject(newMergeFolder);
+                mergedFolder.getComponents().add(c);
             }
             else {
                 MergeType e = MergeType.valueOf(isOurExist + isTheirExist + isFatherExist + isOEqualT + isOEqualF + isFEqualT);
@@ -1151,142 +1203,10 @@ public class GitManager {
         }
 
 
-//
-//
-//                if ((oldFolder != null) && (newFolder != null)) {
-//                oldComponents = oldFolder.getComponents();
-//                newComponents = newFolder.getComponents();
-//                if (!oldComponents.isEmpty() && !newComponents.isEmpty()) {
-//
-//// indexes of the component in the lists
-//                    while (oldd < oldComponents.size() && neww < newComponents.size()) { // while two folders are not empty
-//                        if (oldComponents.get(oldd).getComponentName().equals(newComponents.get(neww).getComponentName())) { // if names are the same
-//                            if (oldComponents.get(oldd).getComponentSHA1().equals(newComponents.get(neww).getComponentSHA1())) { //if sha1 is the same
-//                                //point old object
-//                                newComponents.set(neww, oldComponents.get(oldd)); // if nothing changed, point at the original tree
-//                                neww++;
-//                                oldd++;
-//                            } else if (oldComponents.get(oldd).getComponentType().equals(newComponents.get(neww).getComponentType())) { //different sha1, updated file
-//                                if (oldComponents.get(oldd).getComponentType().equals(FolderType.Folder)) {
-//                                    Folder newf = (Folder) newComponents.get(neww).getDirectObject();
-//                                    Folder oldf = (Folder) oldComponents.get(oldd).getDirectObject();
-//
-//                                    createShaAndZipForNewCommit(newf, oldf, isCreateZip, Paths.get(path.toString() + "\\" + oldComponents.get(oldd).getComponentName()));
-//                                    String newSHA = generateSHA1FromString(newf.getFolderContentString());
-//                                    String oldSHA = generateSHA1FromString(oldf.getFolderContentString());
-//
-//                                    if (newSHA.equals(oldSHA)) { //if sha1 is the same
-//                                        newComponents.set(neww, oldComponents.get(oldd)); // if nothing changed, point at the original tree
-//                                    }
-//                                    if (isCreateZip == Boolean.TRUE) {
-//                                        createZipFile(objectPath, generateSHA1FromString(newf.getFolderContentString()), newf.getFolderContentString());
-//                                    }
-//                                    neww++;
-//                                    oldd++;
-//                                } else {
-//                                    //both blob - updated
-//                                    if (isCreateZip == Boolean.TRUE) {
-//                                        File f = new File(objectPath.toString() + "\\" + newComponents.get(neww).getComponentSHA1() + ".zip");
-//                                        if (!f.exists()) {
-//                                            Blob b = (Blob) newComponents.get(neww).getDirectObject();
-//
-//                                            createZipFile(objectPath, newComponents.get(neww).getComponentSHA1(), b.getContent());
-//                                            //add updated file zip
-//                                        }
-//                                    }
-//                                    //add to path
-//                                    this.updatedFiles.add(Paths.get(path.toString() + "\\" + newComponents.get(neww).getComponentName()));
-//                                    neww++;
-//                                    oldd++;
-//                                }
-//                            }
-//                        } else {
-//                            int result = newComponents.get(neww).getComponentName().compareTo(oldComponents.get(oldd).getComponentName());
-//                            if (result > 0) {
-//                                //file was deleted from old
-//                                //add to list
-//                                if (oldComponents.get(oldd).getComponentType().equals(FolderType.Folder)) {
-//                                    Folder f = (Folder) oldComponents.get(oldd).getDirectObject();
-//
-//                                    createShaAndZipForNewCommit(null, f, isCreateZip, Paths.get(path.toString() + "\\" + oldComponents.get(oldd).getComponentName()));
-//                                }
-//                                this.deletedFiles.add(Paths.get(path.toString() + "\\" + oldComponents.get(oldd).getComponentName()));
-//                                oldd++;
-//
-//                            } else {
-//                                //new file was added
-//                                //add new zip
-//                                //createZipFile(path,newComponents.get(neww).getComponentSHA1(),newComponents.get(neww).);
-//
-//                                //add to list
-//                                if (newComponents.get(neww).getComponentType().equals(FolderType.Blob)) {
-//                                    if (isCreateZip == Boolean.TRUE) {
-//                                        File f = new File(objectPath.toString() + "\\" + newComponents.get(neww).getComponentSHA1() + ".zip");
-//                                        if (!f.exists()) {
-//                                            Blob b = (Blob) newComponents.get(neww).getDirectObject();
-//                                            createZipFile(objectPath, newComponents.get(neww).getComponentSHA1(), b.getContent());
-//                                        }
-//                                    }
-//                                } else {
-//                                    Folder f = (Folder) newComponents.get(neww).getDirectObject();
-//
-//                                    //Folder f = new Folder(newComponents.get(neww));
-//                                    createShaAndZipForNewCommit(f, null, isCreateZip, Paths.get(path.toString() + "\\" + newComponents.get(neww).getComponentName()));
-//                                    if (isCreateZip == Boolean.TRUE) {
-//
-//                                        createZipFile(objectPath, generateSHA1FromString(f.getFolderContentString()), f.getFolderContentString());
-//                                    }
-//                                }
-//                                this.createdFiles.add(Paths.get(path.toString() + "\\" + newComponents.get(neww).getComponentName()));
-//                                neww++;
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//
-//            if (oldFolder != null) {
-//                oldComponents = oldFolder.getComponents();
-//                while (oldd < oldComponents.size()) {
-//                    if (oldComponents.get(oldd).getComponentType().equals(FolderType.Folder)) {
-//                        Folder f = (Folder) oldComponents.get(oldd).getDirectObject();
-//
-//                        //Folder f = new Folder(newComponents.get(neww));
-//                        createShaAndZipForNewCommit(null, f, isCreateZip, Paths.get(path.toString() + "\\" + oldComponents.get(oldd).getComponentName()));
-//                    }
-//                    this.deletedFiles.add(Paths.get(path.toString() + "\\" + oldComponents.get(oldd).getComponentName()));
-//                    oldd++;
-//                }
-//            }
-//
-//            if (newFolder != null) {
-//                newComponents = newFolder.getComponents();
-//                while (neww < newComponents.size()) {
-//                    if (newComponents.get(neww).getComponentType().equals(FolderType.Blob)) {
-//                        if (isCreateZip == Boolean.TRUE) {
-//                            File f = new File(objectPath.toString() + "\\" + newComponents.get(neww).getComponentSHA1() + ".zip");
-//                            if (!f.exists()) {
-//                                Blob b = (Blob) newComponents.get(neww).getDirectObject();
-//                                createZipFile(objectPath, newComponents.get(neww).getComponentSHA1(), b.getContent());
-//                            }
-//                        }
-//                    } else {
-//                        Folder f = (Folder) newComponents.get(neww).getDirectObject();
-//
-//                        //Folder f = new Folder(newComponents.get(neww).getDirectObject().);
-//                        createShaAndZipForNewCommit(f, null, isCreateZip, Paths.get(path.toString() + "\\" + newComponents.get(neww).getComponentName()));
-//                        if (isCreateZip == Boolean.TRUE) {
-//
-//                            createZipFile(objectPath, generateSHA1FromString(f.getFolderContentString()), f.getFolderContentString());
-//                        }
-//                    }
-//                    this.createdFiles.add(Paths.get(path.toString() + "\\" + newComponents.get(neww).getComponentName()));
-//                    neww++;
-//                }
-//            }
-//
-//        }
+
     }
+
+
 }
 
 //לתת אפשרות לעשות סוויץ רפוזטורי מתוך כלום

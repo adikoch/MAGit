@@ -4,6 +4,8 @@ package Classess;
 
 import generated.MagitCommits;
 import generated.MagitSingleCommit;
+import puk.team.course.magit.ancestor.finder.AncestorFinder;
+import puk.team.course.magit.ancestor.finder.CommitRepresentative;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class Commit {
+public class Commit implements CommitRepresentative {
     private String SHA1;
     private Folder rootFolder;
     private String rootFolderSHA1;
@@ -149,9 +151,19 @@ public class Commit {
         }
         return newMap;
     }
+   public String getSha1()
+    {
+        return SHA1;
+    }
 
-//    public void exportToFile()
-//    {
-//
-//    }
+    public String getFirstPrecedingSha1()
+    {
+        return SHA1PreveiousCommit;
+    }
+
+   public String getSecondPrecedingSha1()
+    {
+        return SHA1anotherPreveiousCommit;
+    }
+
 }

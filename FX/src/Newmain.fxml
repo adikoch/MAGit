@@ -56,7 +56,7 @@
                         <Button mnemonicParsing="false" text="Push" />
                         <Button mnemonicParsing="false" text="Pull" />
                         <Button mnemonicParsing="false" text="Fetch" />
-                        <Button mnemonicParsing="false" text="Button" />
+                        <Button fx:id="merge" mnemonicParsing="false" onAction="#mergeTwoBranchesOnAction" text="Merge" />
                         <SplitMenuButton mnemonicParsing="false" text="Commit">
                             <items>
                                 <MenuItem mnemonicParsing="false" text="Show Status" />
@@ -89,9 +89,9 @@
                                     <TreeView layoutX="-1.0" prefHeight="150.0" prefWidth="416.0" />
                                  </children></AnchorPane>
                                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
-                                            <children>
-                                                <Label fx:id="CommitText" layoutX="62.0" layoutY="29.0" prefHeight="154.0" prefWidth="415.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                            </children></AnchorPane>
+                                 <children>
+                                    <TreeView fx:id="CommitText" prefHeight="154.0" prefWidth="415.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                 </children></AnchorPane>
                                     </items>
                                 </SplitPane>
                             </children>

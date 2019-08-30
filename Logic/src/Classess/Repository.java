@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import generated.*;
+import puk.team.course.magit.ancestor.finder.CommitRepresentative;
 
 public class Repository {
 //members
@@ -32,12 +33,12 @@ public class Repository {
     }
 
 
-    Repository(Path workingPath, Branch headBranch) {
+    Repository(Path workingPath, Branch headBranch,String repName) {
         path = workingPath;
         branches = new HashSet<>();
         branches.add(headBranch);
         head = headBranch;
-        repositoryName = "EmptyRepository";
+        repositoryName = repName;
         commitMap = new HashMap<>();
     }
 
@@ -120,6 +121,11 @@ public class Repository {
             commitMap.put(c.getSHA(),c);
         }
     }
+    public CommitRepresentative sha1ToCommit(String sha1)
+    {
+        return commitMap.get(sha1);
+    }
+
 }
 
 
