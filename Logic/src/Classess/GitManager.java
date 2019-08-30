@@ -5,6 +5,7 @@ import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import generated.*;
 import puk.team.course.magit.ancestor.finder.AncestorFinder;
 import puk.team.course.magit.ancestor.finder.CommitRepresentative;
+//import puk.team.course.magit.ancestor.finder.AncestorFinder;
 
 
 import javax.xml.bind.*;
@@ -350,7 +351,7 @@ public class GitManager {
 
     public void switchRepository(Path newRepPath) throws IOException, IllegalArgumentException //V
     {
-        File f = Paths.get(newRepPath.toString() + "\\.magit\\branches\\Head").toFile();
+        File f = Paths.get(newRepPath.toString() + "\\.magit\\branches\\Head").toFile();//הקובץ הד
         String content = readTextFile(newRepPath + "\\.magit\\branches\\" + f.getName());
         //String name = readTextFile(newRepPath + "\\.magit\\branches\\" + content);
         this.GITRepository = new Repository(newRepPath);
@@ -441,9 +442,13 @@ public class GitManager {
 
     public Folder generateFolderFromCommitObject(String rootFolderName) throws IOException {//V
         Path ObjectPath = Paths.get(GITRepository.getRepositoryPath().toString() + "\\.magit\\Objects");
-        String folderContent = extractZipFile(Paths.get(ObjectPath + "\\" + rootFolderName + ".zip"));
-        Folder currentFolder = new Folder();
+        String folderContent;
+        Folder currentFolder;
+        try{folderContent= extractZipFile(Paths.get(ObjectPath + "\\" + rootFolderName + ".zip"));}
+        catch(IOException e)
+        {return new Folder(); }
 
+        currentFolder = new Folder();
         currentFolder.setComponents(currentFolder.setComponentsFromString(folderContent));
 
         for (Folder.Component c : currentFolder.getComponents()) {

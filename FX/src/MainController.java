@@ -279,10 +279,9 @@ public class MainController {
     }
 
     public void ShowCommitFilesOnAction() {
-        //לבקש שא1 של קומיט
-        //ליצור ממנו פולדר
-        //להכנס ברקורסיה על הפולדרים ולכל אחד אם בלוב ליצור בלי חץ ולהחזיר אם הוא פולדר ליצור כזה עם חץ ולהוסיף אליו את כל מה שחוזר מהרקורסיה
+        //כרגע מבקש שא1 של קומיט, כשיהיה גרף כאשר המשתמש לחץ קודם על אחד מהקומיטים נעביר לפונק הזו את הsha של הקומיט הלחוץ
         popUpTextBox("Please enter the sha1 of the wanted commit");
+        if (InputTextBox==null) return;
         String commitSha1= InputTextBox;
         InputTextBox= null;
 
@@ -302,6 +301,7 @@ public class MainController {
             //primaryStage.show();
             CommitText.setRoot(toShow);
         }
+
         catch(Exception e){popUpMessage("Unable to generate commit using the files");}
 
         try {
@@ -352,6 +352,7 @@ public class MainController {
         if (manager.getGITRepository() != null) {
 
             popUpTextBox("Please enter the new username:");
+            if(InputTextBox==null) return;
             manager.updateNewUserNameInLogic(InputTextBox);
             InputTextBox=null;
         } else {
@@ -394,6 +395,7 @@ public class MainController {
             } catch (IOException e) {//קיים כבר רפוזטורי עם אותו שם באותה התיקייה שקיבלנו מהאקסמל
                 //popUpTextBox("There is already a repository with the same name at the wanted location\nPlease enter O to over write the existing, S to switch to the existing one");
                 popUpConfirmationBox("There is already a repository with the same name at the wanted location\nDo you want to override it or switch to it?", "Override", "Switch");
+                if(InputTextBox==null) return;
                 SorO = InputTextBox;
                 InputTextBox = null;
                 while (!isValid) {
@@ -439,6 +441,7 @@ public class MainController {
                     {
                         isValid = false;
                         popUpTextBox("please enter a valid input: O/S");
+                        if(InputTextBox==null) return;
                         SorO = InputTextBox;
                         InputTextBox = null;
 
@@ -484,7 +487,7 @@ public class MainController {
         popUpWindow.setScene(scene);
         popUpWindow.showAndWait();
 
-
+        InputTextBox=null;
     }
     //פונקציה שמייצרת חלון חדש עם תיבת טקסט בפנים עם הטקסט שהיא מקלבת וכשלוחצים לה ok מחזירה לי את הטקסט שכתבו שם בתוך המשתנה מחלקה יוזראינפוט
     public void popUpTextBox(String textToUser) {
@@ -543,7 +546,6 @@ public class MainController {
         popUpWindow.setScene(scene);
         popUpWindow.showAndWait();
 
-
     }
 
     //שלוש פעולות בכל פעם שרוצה לקבל משהו מהמשתמש: קריאה לטקסטבוקס, לקיחת מה שחזר משם אל המשתנה הרצוי, איפוס המשתנה אינפוטטקסטבוקס
@@ -554,13 +556,15 @@ String repFolder;
         String pathString = getFolderWithChooser("New repository's location");
         if (pathString != null) {
             popUpTextBox("Choose a name for the folder of the repository:");
+            if(InputTextBox==null) return;
             repFolder = InputTextBox;
             InputTextBox = null;
 
             popUpTextBox("Choose a name for the new repository:");
+            if(InputTextBox==null) return;
             repName = InputTextBox;
-
             InputTextBox = null;
+
             if (Files.exists(Paths.get(pathString + "\\" + repFolder))) {
                 popUpMessage("The wanted repository path already exist as a repository, please try again");
                 CreateEmptyRepositoryOnAction();
@@ -668,9 +672,9 @@ String repFolder;
         String newBranchName;
 
         popUpTextBox("Please enter the name of the new branch");
-
+        if(InputTextBox==null) return;
         newBranchName = InputTextBox;//getting the name
-
+        InputTextBox=null;
         if (manager.getGITRepository().getBranchByName(newBranchName) != null) //checking if exist already
         {
             popUpMessage("Branch name already exist, please enter a different name");
@@ -725,6 +729,7 @@ try {
         }
         // popUpTextBox("Please enter the name of the branch to delete");
         popUpChooseBox("Choose Branch For Checkout");
+        if(InputTextBox==null) return;
         String branchName = InputTextBox;
         InputTextBox = null;
         if (manager.getGITRepository().getBranchByName(branchName) != null) {
@@ -751,6 +756,7 @@ try {
         }
        // popUpTextBox("Please enter the name of the branch to move over to");
         popUpChooseBox("Choose Branch For Checkout");
+        if(InputTextBox==null) return;
         String branchName = InputTextBox;
         InputTextBox = null;
 
@@ -762,6 +768,7 @@ try {
                         manager.getUpdatedFiles().size() != 0 ||
                         manager.getCreatedFiles().size() != 0) {
                     popUpTextBox("There are unsaved changes in the WC. would you like to save it before checkout? (yes/no");
+                    if (InputTextBox==null) return;
                     String toCommit = InputTextBox;
                     InputTextBox = null;
                     if (toCommit.toLowerCase().equals("yes".toLowerCase())) {
@@ -787,21 +794,22 @@ try {
 
     @FXML
     public void ResetBranchOnAction() {
+        //לעבור על כל הברנצים הקיימים כבר המערכת, אם אחד מהם מצביע על הקומיט שנתנו לי אז גם לוגית לשנות את הבראנצ הנוכחי להיות הבראנצ הזה שקיים וגם בקבצים לשנות את השם שכתוב בתוך הקובץ של הד להיות השם של מי שמצאתי שקיים
+        //אם אף אחד מהבראנצים הקיימים לא מצביע על קומיט שכזה ליצור קובץ חדש של בראנצ, תוכנו יהיה השא1 שקיבלתי מהמשתמש, וגם לוגית להוסיף בראנצ חדש לרשימת הראנצים
         if (manager.getGITRepository() == null) {
             popUpMessage("There is no repository defined, no branches defined yet");
             return;
         }
-        Boolean isExist=false;
-        Path pathToSearchZip=null;
         Commit newCommit;
-        Folder folderOfCommit;
         popUpTextBox("Please enter the SHA of commit for head Branch");
+        if(InputTextBox==null) return;
         String sha = InputTextBox;
-            pathToSearchZip=Paths.get(manager.getGITRepository().getRepositoryPath().toString()+"\\.magit\\objects\\"+sha+".zip");//c:\rep\.magit\objects
-            //isExist=Files.exists(pathToSearchZip);//isExist true=> לבדוק אם זה באמת זיפ של קומיט או של בלוב או פולדר
-        //sha1 takin
+        InputTextBox=null;
 
-        try {newCommit= manager.getCommitFromSha1UsingFiles(manager.getGITRepository().getRepositoryPath().toString(), sha);}
+        try {
+            //לפני שיוצרת יכולה לבדוק אם כבר קיים במערכת לוגית
+            newCommit= manager.getCommitFromSha1UsingFiles(manager.getGITRepository().getRepositoryPath().toString(), sha);
+            newCommit.setSHA1(sha);}
         catch (Exception e) {
             out.println(e.getMessage());
             return;}
@@ -816,7 +824,9 @@ try {
                     manager.getCreatedFiles().size() != 0) {
                 popUpConfirmationBox("There are unsaved changes in the WC. would you like to save it before checkout?","Yes","No");
                 out.println("There are unsaved changes in the WC. would you like to save it before checkout? (yes/no");
+                if(InputTextBox==null) return;
                 String toCommit = InputTextBox;
+                InputTextBox=null;
                 if (toCommit.toLowerCase().equals("1")) {
                     try{
                         manager.ExecuteCommit("commit before checkout to " +manager.getGITRepository().getHeadBranch() + "Branch", true);}
@@ -828,8 +838,8 @@ try {
 
             //text file update:
             manager.updateFile(sha);
-            manager.getGITRepository().getHeadBranch().setPointedCommit(newCommit);
-
+            manager.getGITRepository().getHeadBranch().setPointedCommit(newCommit);//////////////////
+//השורה הזו משום מה לא באמת משנה את הלוגיקה להצביע מתוך דיפ אל אל הקומיט החדש
 
             manager.executeCheckout(manager.getGITRepository().getHeadBranch().getBranchName());
             manager.getCreatedFiles().clear();
