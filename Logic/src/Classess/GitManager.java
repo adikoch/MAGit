@@ -1021,7 +1021,7 @@ public class GitManager {
 
         writer.close();
     }
-   public void merge(String theirBranchName) throws Exception {
+   public void merge(String theirBranchName, String description) throws Exception {
        String BranchesPath = GITRepository.getRepositoryPath() + "\\.magit\\branches\\";
        String ObjectsPath = GITRepository.getRepositoryPath() + "\\.magit\\objects\\";
 
@@ -1041,7 +1041,7 @@ public class GitManager {
        deleteFilesInFolder(GITRepository.getRepositoryPath().toFile());
 
 //take care of commit
-       Commit c = new Commit("Merge of head and " + theirBranchName, userName);
+       Commit c = new Commit(description, userName);
 //       String anotherPrev = GITRepository.getHeadBranch().getPointedCommit().getSHA1PreveiousCommit();//האם יש עוד אבא
 //       if (anotherPrev != null) {
 //           c.setSHA1anotherPreveiousCommit(anotherPrev);
@@ -1064,19 +1064,8 @@ public class GitManager {
    }
 
     public void mergeBranches(Folder oursFolder, Folder theirsFolder,Folder fatherFolder, Folder mergedFolder ) {
-        //getFather;
-        //Folder mergedFolder = new Folder();
-        mergedFolder.setComponents(new ArrayList<>());
-//        Folder oursFolder = our.getPointedCommit().getRootFolder();
-//        Folder theirsFolder = their.getPointedCommit().getRootFolder();
-        //Folder fatherFolder = new Folder();// = traceAncestor
-        String isOurExist = "0";
-        String isTheirExist = "0";
-        String isFatherExist = "0";
-        String isOEqualT = "0";
-        String isOEqualF = "0";
-        String isFEqualT = "0";
 
+        mergedFolder.setComponents(new ArrayList<>());
 
         ArrayList<Folder.Component> ourComponents = new ArrayList<>();
         ArrayList<Folder.Component> theirComponents = new ArrayList<>();
@@ -1086,130 +1075,228 @@ public class GitManager {
         int theirIndex = 0;
         int fatherIndex = 0;
 
+        if (oursFolder != null)
+            ourComponents = oursFolder.getComponents();
+        if (theirsFolder != null)
+            theirComponents = theirsFolder.getComponents();
+        if (fatherFolder != null)
+            fatherComponents = fatherFolder.getComponents();
 
-        ourComponents = oursFolder.getComponents();
-        theirComponents = theirsFolder.getComponents();
-        fatherComponents = fatherFolder.getComponents();
+
 
         //if (!ourComponents.isEmpty() && !theirComponents.isEmpty() && !fatherComponents.isEmpty()) {
 
 // indexes of the component in the lists
-        while (ourIndex < ourComponents.size() && theirIndex < theirComponents.size() && fatherIndex < fatherComponents.size()) { // while two folders are not empty
+        while (ourIndex < ourComponents.size() || theirIndex < theirComponents.size() || fatherIndex < fatherComponents.size()) { // while two folders are not empty
 
+            String isOurExist = "0";
+            String isTheirExist = "0";
+            String isFatherExist = "0";
+            String isOEqualT = "0";
+            String isOEqualF = "0";
+            String isFEqualT = "0";
             //לוודא שהאידקסים נכונים
             //לעשות בדיקה של מי הכי קטן
 
 //find min
-            String a = fatherComponents.get(fatherIndex).getComponentName();
-            FolderType type = fatherComponents.get(fatherIndex).getComponentType();
-
-            if (a.compareTo(ourComponents.get(ourIndex).getComponentName()) < 0) {
+            //find who is not null
+            String a = null;
+            FolderType type = null;
+            if (!fatherComponents.isEmpty()) {
+                a = fatherComponents.get(fatherIndex).getComponentName();
+                type = fatherComponents.get(fatherIndex).getComponentType();
+            } else if (!theirComponents.isEmpty()) {
+                a = theirComponents.get(theirIndex).getComponentName();
+                type = theirComponents.get(theirIndex).getComponentType();
+            } else if (!ourComponents.isEmpty()) {
                 a = ourComponents.get(ourIndex).getComponentName();
                 type = ourComponents.get(ourIndex).getComponentType();
             }
-            if (a.compareTo(theirComponents.get(theirIndex).getComponentName()) < 0) {
-                a = theirComponents.get(theirIndex).getComponentName();
-                type = theirComponents.get(theirIndex).getComponentType();
-            }
 
+            if (!ourComponents.isEmpty()) {
+                if (a.compareTo(ourComponents.get(ourIndex).getComponentName()) < 0) {
+                    a = ourComponents.get(ourIndex).getComponentName();
+                    type = ourComponents.get(ourIndex).getComponentType();
+                }
+            }
+            if (!theirComponents.isEmpty()) {
+                if (a.compareTo(theirComponents.get(theirIndex).getComponentName()) < 0) {
+                    a = theirComponents.get(theirIndex).getComponentName();
+                    type = theirComponents.get(theirIndex).getComponentType();
+                }
+            }
 
             //fill 3 bool
-            if (a.compareTo(fatherComponents.get(fatherIndex).getComponentName()) == 0) {
+            if (!fatherComponents.isEmpty() && a.compareTo(fatherComponents.get(fatherIndex).getComponentName()) == 0) {
                 isFatherExist = "1";
-                if (fatherComponents.get(fatherIndex).getComponentName().compareTo(ourComponents.get(ourIndex).getComponentName()) == 0) {
-                    isOurExist = "1";
-                 //   isOEqualF = "1";
+                if (!ourComponents.isEmpty()) {
+                    if (fatherComponents.get(fatherIndex).getComponentName().compareTo(ourComponents.get(ourIndex).getComponentName()) == 0) {
+                        isOurExist = "1";
+                        //   isOEqualF = "1";
+                    }
                 }
-                if (fatherComponents.get(fatherIndex).getComponentName().compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
-                    isTheirExist = "1";
-               //     isFEqualT = "1";
+                if (!theirComponents.isEmpty()) {
+                    if (fatherComponents.get(fatherIndex).getComponentName().compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
+                        isTheirExist = "1";
+                        //     isFEqualT = "1";
+                    }
                 }
-            }
-            if (a.compareTo(ourComponents.get(ourIndex).getComponentName()) == 0) {
+            } else if (!ourComponents.isEmpty() && a.compareTo(ourComponents.get(ourIndex).getComponentName()) == 0) {
                 isOurExist = "1";
-                if (fatherComponents.get(fatherIndex).getComponentName().compareTo(ourComponents.get(ourIndex).getComponentName()) == 0) {
-                    isFatherExist = "1";
-                   // isOEqualF = "1";
-
+                if (!fatherComponents.isEmpty()) {
+                    if (fatherComponents.get(fatherIndex).getComponentName().compareTo(ourComponents.get(ourIndex).getComponentName()) == 0) {
+                        isFatherExist = "1";
+                        // isOEqualF = "1";
+                    }
                 }
-                if (ourComponents.get(ourIndex).getComponentName().compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
-                    isTheirExist = "1";
-                   // isOEqualT = "1";
-
+                if (!theirComponents.isEmpty()) {
+                    if (ourComponents.get(ourIndex).getComponentName().compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
+                        isTheirExist = "1";
+                        // isOEqualT = "1";
+                    }
                 }
-            }
-            if (a.compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
+            } else if (!theirComponents.isEmpty() && a.compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
                 isTheirExist = "1";
-                if (fatherComponents.get(fatherIndex).getComponentName().compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
-                    isFatherExist = "1";
-                   // isFEqualT = "1";
-
+                if (!fatherComponents.isEmpty()) {
+                    if (fatherComponents.get(fatherIndex).getComponentName().compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
+                        isFatherExist = "1";
+                        // isFEqualT = "1";
+                    }
                 }
-                if (ourComponents.get(ourIndex).getComponentName().compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
-                    isOurExist = "1";
-                   // isOEqualT = "1";
-
+                if (!ourComponents.isEmpty()) {
+                    if (ourComponents.get(ourIndex).getComponentName().compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
+                        isOurExist = "1";
+                        // isOEqualT = "1";
+                    }
                 }
             }
 
+            if (isFatherExist.equals("1") && isOurExist.equals("1")) {
+                if (ourComponents.get(ourIndex).getComponentSHA1().compareTo(fatherComponents.get(fatherIndex).getComponentSHA1()) == 0) {
+                    isOEqualF = "1";
+                }
+            }
+            if (isTheirExist.equals("1") && isOurExist.equals("1")) {
+                if (theirComponents.get(theirIndex).getComponentSHA1().compareTo(ourComponents.get(ourIndex).getComponentSHA1()) == 0) {
+                    isOEqualT = "1";
+                }
+            }
+            if (isTheirExist.equals("1") && isFatherExist.equals("1")) {
+                if (theirComponents.get(theirIndex).getComponentSHA1().compareTo(fatherComponents.get(fatherIndex).getComponentSHA1()) == 0)
+                    isFEqualT = "1";
+            }
 
-            if (ourComponents.get(ourIndex).getComponentSHA1().compareTo(fatherComponents.get(fatherIndex).getComponentSHA1()) == 0) {
-                isOEqualF = "1";
-            }
-            if (theirComponents.get(theirIndex).getComponentSHA1().compareTo(ourComponents.get(ourIndex).getComponentSHA1()) == 0) {
-                isOEqualT = "1";
-            }
-            if (theirComponents.get(theirIndex).getComponentSHA1().compareTo(fatherComponents.get(fatherIndex).getComponentSHA1()) == 0)
-                isFEqualT = "1";
-            if(type.equals(FolderType.Folder)) {
+            if (type.equals(FolderType.Folder)) {
                 Folder our = null;
                 Folder their = null;
                 Folder father = null;
                 if (isOurExist.equals("1")) {
-                    our =(Folder) ourComponents.get(ourIndex).getDirectObject();
+                    our = (Folder) ourComponents.get(ourIndex).getDirectObject();
                 }
                 if (isTheirExist.equals("1")) {
-                    their = (Folder)theirComponents.get(theirIndex).getDirectObject();
+                    their = (Folder) theirComponents.get(theirIndex).getDirectObject();
                 }
-                if(isFatherExist.equals("1")) {
-                    father = (Folder)fatherComponents.get(fatherIndex).getDirectObject();
+                if (isFatherExist.equals("1")) {
+                    father = (Folder) fatherComponents.get(fatherIndex).getDirectObject();
                 }
                 Folder newMergeFolder = new Folder();
-                mergeBranches(our,their,father,newMergeFolder);
+                mergeBranches(our, their, father, newMergeFolder);
                 //check if there was no chnge- take our
 
-                if(generateSHA1FromString(newMergeFolder.getFolderContentString()).equals(generateSHA1FromString(their.getFolderContentString())))
-                    newMergeFolder = theirsFolder;
-                if(generateSHA1FromString(newMergeFolder.getFolderContentString()).equals(generateSHA1FromString(father.getFolderContentString())))
-                    newMergeFolder = fatherFolder;
-                if(generateSHA1FromString(newMergeFolder.getFolderContentString()).equals(generateSHA1FromString(our.getFolderContentString())))
-                    newMergeFolder = oursFolder;
-                Folder.Component c = new Folder.Component(a,generateSHA1FromString(newMergeFolder.getFolderContentString()), FolderType.Folder, userName, getDateFromObject(new Date()));
+                if (generateSHA1FromString(newMergeFolder.getFolderContentString()).equals(generateSHA1FromString(their.getFolderContentString())))
+                    newMergeFolder = their;
+                if (generateSHA1FromString(newMergeFolder.getFolderContentString()).equals(generateSHA1FromString(father.getFolderContentString())))
+                    newMergeFolder = father;
+                if (generateSHA1FromString(newMergeFolder.getFolderContentString()).equals(generateSHA1FromString(our.getFolderContentString())))
+                    newMergeFolder = our;
+
+                Folder.Component c = new Folder.Component(a, generateSHA1FromString(newMergeFolder.getFolderContentString()), FolderType.Folder, userName, getDateFromObject(new Date()));
                 c.setDirectObject(newMergeFolder);
+
+                if (!theirComponents.isEmpty() && theirComponents.get(theirIndex).getDirectObject() == newMergeFolder) {
+                    c = theirComponents.get(theirIndex);
+                } else if (!fatherComponents.isEmpty() && fatherComponents.get(fatherIndex).getDirectObject() == newMergeFolder) {
+                    c = fatherComponents.get(fatherIndex);
+                } else if (!ourComponents.isEmpty() && ourComponents.get(ourIndex).getDirectObject() == newMergeFolder) {
+                    c = ourComponents.get(ourIndex);
+                }
                 mergedFolder.getComponents().add(c);
-            }
-            else {
-                MergeType e = MergeType.valueOf(isOurExist + isTheirExist + isFatherExist + isOEqualT + isOEqualF + isFEqualT);
+            } else {
+                MergeType enumForFun = getEnumFromString(isOurExist, isTheirExist, isFatherExist, isOEqualT, isOEqualF, isFEqualT);
+                MergeType e = MergeType.valueOf(enumForFun.toString().toUpperCase());
                 Folder.Component c = e.decideFile(conflictMap, ourComponents.get(ourIndex), theirComponents.get(theirIndex), oursFolder);
                 mergedFolder.getComponents().add(c);
             }
-            if(isFatherExist.equals("1"))
-            {
+            if (isFatherExist.equals("1")) {
                 fatherIndex++;
             }
-            if(isOurExist.equals("1"))
-            {
+            if (isOurExist.equals("1")) {
                 ourIndex++;
             }
-            if(isTheirExist.equals("1"))
-            {
+            if (isTheirExist.equals("1")) {
                 theirIndex++;
             }
         }
-
+        if(generateSHA1FromString(mergedFolder.getFolderContentString()).equals(generateSHA1FromString(theirsFolder.getFolderContentString())))
+            mergedFolder = theirsFolder;
+        if(generateSHA1FromString(mergedFolder.getFolderContentString()).equals(generateSHA1FromString(fatherFolder.getFolderContentString())))
+            mergedFolder = fatherFolder;
+        if(generateSHA1FromString(mergedFolder.getFolderContentString()).equals(generateSHA1FromString(oursFolder.getFolderContentString())))
+            mergedFolder = oursFolder;
 
 
     }
+
+  public MergeType getEnumFromString(String isOurExist ,String isTheirExist ,String isFatherExist ,String isOEqualT ,String isOEqualF ,String isFEqualT) {
+      String s = isOurExist + isTheirExist + isFatherExist + isOEqualT + isOEqualF + isFEqualT;
+    MergeType MT = null;
+      switch (s) {
+          case "001000":
+              MT =  MergeType.A;            break;
+          case "010000":
+              MT =   MergeType.B;               break;
+
+          case "011000":
+              MT =   MergeType.C;              break;
+
+          case "011001":
+              MT =   MergeType.D;              break;
+
+          case "100000":
+              MT =   MergeType.E;              break;
+
+          case "101000":
+              MT =   MergeType.F;              break;
+
+          case "101010":
+              MT =   MergeType.G;              break;
+
+          case "110000":
+              MT =   MergeType.H;              break;
+
+          case "110100":
+              MT =   MergeType.I;              break;
+
+          case "111000":
+              MT =   MergeType.J;              break;
+
+          case "111001":
+              MT =   MergeType.K;              break;
+
+          case "111010":
+              MT =   MergeType.L;              break;
+
+          case "111100":
+              MT =   MergeType.M;              break;
+
+          case "111111":
+              MT =   MergeType.N;              break;
+
+
+
+      }
+      return MT;
+  }
 
 
 }

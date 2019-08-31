@@ -487,7 +487,6 @@ public class MainController {
         popUpWindow.setScene(scene);
         popUpWindow.showAndWait();
 
-        InputTextBox=null;
     }
     //פונקציה שמייצרת חלון חדש עם תיבת טקסט בפנים עם הטקסט שהיא מקלבת וכשלוחצים לה ok מחזירה לי את הטקסט שכתבו שם בתוך המשתנה מחלקה יוזראינפוט
     public void popUpTextBox(String textToUser) {
@@ -699,25 +698,41 @@ String repFolder;
             popUpMessage("There is no repository defined, cannot creat new branch");
             return;
         }
-        String theirBranchName;
-
         popUpTextBox("Please enter the name of the second branch");
 
-        theirBranchName = InputTextBox;//getting the name
-try {
-    if (manager.getGITRepository().getBranchByName(theirBranchName) != null) //checking if exist already
-    {
-        manager.merge(theirBranchName);
-        return;
+        String theirBranchName = InputTextBox;//getting the name
+        InputTextBox = null;
+        popUpTextBox("Please enter the description for the merge");
 
-    } else {
-        popUpMessage("Branch does not exist, please enter a name");
-
-    }
-}
-        catch (InvocationTargetException e)
+        String mergeDescription = InputTextBox;//getting the name
+        InputTextBox = null;
+        if (manager.getGITRepository().getBranchByName(theirBranchName) != null) //checking if exist already
         {
-            out.println(e.getCause());
+            manager.ExecuteCommit("", false);
+            if (manager.getDeletedFiles().size() != 0 ||
+                    manager.getUpdatedFiles().size() != 0 ||
+                    manager.getCreatedFiles().size() != 0) {
+                popUpTextBox("There are unsaved changes in the WC. would you like to save it before checkout? (yes/no");
+                if (InputTextBox == null) return;
+                String toCommit = InputTextBox;
+                InputTextBox = null;
+                if (toCommit.toLowerCase().equals("yes".toLowerCase())) {
+                    try {
+                        manager.ExecuteCommit("commit before checkout to " + theirBranchName + "Branch", true);
+                        dynamicStatusContentP.set("Checkout was executed");
+                    } catch (Exception e) {
+                        popUpMessage("Unable to create zip file");
+                        return;
+                    }
+                }
+            }
+
+            manager.merge(theirBranchName, mergeDescription);
+            return;
+
+        } else {
+            popUpMessage("Branch does not exist, please enter a name");
+
         }
     }
 
@@ -728,7 +743,7 @@ try {
             return;
         }
         // popUpTextBox("Please enter the name of the branch to delete");
-        popUpChooseBox("Choose Branch For Checkout");
+        popUpChooseBox("Choose Branch For deletion");
         if(InputTextBox==null) return;
         String branchName = InputTextBox;
         InputTextBox = null;
@@ -763,7 +778,6 @@ try {
         if (manager.getGITRepository().getBranchByName(branchName) != null) {
             try {
                 manager.ExecuteCommit("", false);
-                dynamicStatusContentP.set("Checkout was executed");
                 if (manager.getDeletedFiles().size() != 0 ||
                         manager.getUpdatedFiles().size() != 0 ||
                         manager.getCreatedFiles().size() != 0) {

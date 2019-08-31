@@ -17,29 +17,29 @@ public enum MergeType {
 
     Folder.Component decideFile(Map<Conflict,Folder> conflictMap, Folder.Component ourF, Folder.Component theirF, Folder f) {
         switch (this) {
-            case A:
-            case M:
-            case G:
-            case D:
+            case A://001000
+            case G://101010
+            case D://011001
                 return null;
-            case B:
-            case K:
+            case B://010000
+            case L://111010
+
                 return theirF;
-            case C:
-            case F:
-            case H:
-            case J:
+            case C://011000
+            case F://101000
+            case H://110000
+            case J://111000
             {
                 Conflict c = new Conflict(ourF.getComponentName(),ourF,theirF);
                 conflictMap.put(c,f);
                 return  null;
             }
-            case E:
-            case L:
-            case I:
+            case E://100000
+            case I://110100
+            case N://111111
+            case K://111001
+            case M://111100
                 return ourF;
-
-
         }
         return null;
     }

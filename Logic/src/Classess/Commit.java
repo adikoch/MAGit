@@ -158,12 +158,20 @@ public class Commit implements CommitRepresentative {
 
     public String getFirstPrecedingSha1()
     {
+        if(SHA1PreveiousCommit != null)
         return SHA1PreveiousCommit;
+        else
+            return new String();
     }
 
    public String getSecondPrecedingSha1()
+
     {
+        if(SHA1anotherPreveiousCommit != null)
         return SHA1anotherPreveiousCommit;
+        else
+            return new String();
     }
+
 
 }
