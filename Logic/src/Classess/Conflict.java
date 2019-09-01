@@ -5,17 +5,18 @@ import java.awt.image.ByteLookupTable;
 public class Conflict {
 
     String conflictName;
-//    Folder folderOfFile;
+    //    Folder folderOfFile;
     Blob our;
     Blob their;
     String pathInFolder;
+    Blob father;
 
-    public  Conflict(String conflict, Folder.Component ourIn, Folder.Component theirIn)
-    {
-conflictName = conflict;
-our = (Blob)ourIn.getDirectObject();
-their = (Blob)theirIn.getDirectObject();
+    public Conflict(String conflict, Folder.Component ourIn, Folder.Component theirIn, Folder.Component fatherIn) {
+        conflictName = conflict;
+        our = (Blob) ourIn.getDirectObject();
+        their = (Blob) theirIn.getDirectObject();
+        father = (Blob) fatherIn.getDirectObject();
 //pathInFolder = pathInFolderIn;
     }
-
 }
+

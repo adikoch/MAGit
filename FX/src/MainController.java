@@ -11,6 +11,7 @@ import generated.MagitRepository;
 import javafx.beans.property.SimpleStringProperty;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -29,14 +30,12 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.*;
 import java.util.ArrayList;
-import java.util.Scanner;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.Map;
 
 import static java.lang.System.out;
 
@@ -109,7 +108,7 @@ public class MainController {
         RepositoryNameP = new SimpleStringProperty();
         RepositoryPAthP = new SimpleStringProperty();
         dynamicStatusContentP = new SimpleStringProperty();
-        CommitTextP = new SimpleObjectProperty();
+//        CommitTextP = new SimpleObjectProperty();
     }
 
 
@@ -133,36 +132,48 @@ public class MainController {
 
     @FXML
     public void CommitOnAction() {
-        Label label = new Label("Please enter the description of your commit");
-        TextField newText = new TextField();
-        Button okButton = new Button("OK");
+
+        popUpTextBox("Please enter the description of your commit");
+        if (InputTextBox==null) return;
+        String description= InputTextBox;
+        InputTextBox= null;
+
+
+//        Label label = new Label("Please enter the description of your commit");
+//        TextField newText = new TextField();
+//        Button okButton = new Button("OK");
+//        okButton.setDefaultButton(true);
+
         //okButton.setDisable(false);
         //okButton.setVisible(true);
 
-        Stage popUpWindow = new Stage();
-        popUpWindow.initModality(Modality.APPLICATION_MODAL);
-        okButton.setOnAction(event -> {
+//        Stage popUpWindow = new Stage();
+//        popUpWindow.initModality(Modality.APPLICATION_MODAL);
+//        okButton.setOnAction(event -> {
             try {
-                manager.ExecuteCommit(newText.getText(), true);
+                manager.ExecuteCommit(description, true);
+                manager.getCreatedFiles().clear();
+                manager.getDeletedFiles().clear();
+                manager.getUpdatedFiles().clear();
                 dynamicStatusContentP.set("Commit finished Successfully");
-                CommitTextP.set(manager.getGITRepository().getHeadBranch().getPointedCommit().getSHAContent());
+//                CommitTextP.set(manager.getGITRepository().getHeadBranch().getPointedCommit().getSHAContent());
             } catch (Exception e) {
                 popUpMessage("could not execute commit");//***
             }
-            out.println(newText.getText());
-            popUpWindow.close();
+//            out.println(newText.getText());
+//            popUpWindow.close();
 
-        });
-        FlowPane root = new FlowPane();
-        root.setPadding(new Insets(10));
-        root.setHgap(10);
 
-        root.getChildren().addAll(label, newText, okButton);
-
-        Scene scene = new Scene(root, 500, 120, Color.WHITE);
-        popUpWindow.setTitle("Submit description");
-        popUpWindow.setScene(scene);
-        popUpWindow.showAndWait();
+//        FlowPane root = new FlowPane();
+//        root.setPadding(new Insets(10));
+//        root.setHgap(10);
+//
+//        root.getChildren().addAll(label, newText, okButton);
+//
+//        Scene scene = new Scene(root, 500, 120, Color.WHITE);
+//        popUpWindow.setTitle("Submit description");
+//        popUpWindow.setScene(scene);
+//        popUpWindow.showAndWait();
 
     }
 
@@ -711,23 +722,27 @@ String repFolder;
             manager.ExecuteCommit("", false);
             if (manager.getDeletedFiles().size() != 0 ||
                     manager.getUpdatedFiles().size() != 0 ||
-                    manager.getCreatedFiles().size() != 0) {
-                popUpTextBox("There are unsaved changes in the WC. would you like to save it before checkout? (yes/no");
-                if (InputTextBox == null) return;
+                    manager.getCreatedFiles().size() != 0){
+                popUpConfirmationBox("There are unsaved changes in the WC. would you like to save it before checkout?","Yes","No");
+                if(InputTextBox==null) return;
                 String toCommit = InputTextBox;
-                InputTextBox = null;
-                if (toCommit.toLowerCase().equals("yes".toLowerCase())) {
-                    try {
-                        manager.ExecuteCommit("commit before checkout to " + theirBranchName + "Branch", true);
-                        dynamicStatusContentP.set("Checkout was executed");
-                    } catch (Exception e) {
-                        popUpMessage("Unable to create zip file");
-                        return;
+                InputTextBox=null;
+                if (toCommit.toLowerCase().equals("1")) {
+                    try{
+                        manager.ExecuteCommit(mergeDescription, true);
+                        manager.getCreatedFiles().clear();
+                        manager.getDeletedFiles().clear();
+                        manager.getUpdatedFiles().clear();}
+
+                    catch(Exception er) {
+                        out.println("Unable to create zip file");
                     }
                 }
             }
 
             manager.merge(theirBranchName, mergeDescription);
+            solveConflicts();
+
             return;
 
         } else {
@@ -735,6 +750,42 @@ String repFolder;
 
         }
     }
+
+public void solveConflicts() {
+    Iterator entries =manager.conflictMap.entrySet().iterator();
+    while (entries.hasNext()) {
+        Map.Entry thisEntry = (Map.Entry) entries.next();
+        Conflict c = (Conflict) thisEntry.getValue();
+        Folder derectFolder = (Folder) thisEntry.getKey();
+        openconflictWindow(manager.getStringsForConflict(c));
+    }
+}
+
+public void openconflictWindow(ArrayList<String> s) {
+
+    FXMLLoader loader = new FXMLLoader();
+
+    // load main fxml
+    URL mainFXML = getClass().getResource("/Newmain.fxml");
+    loader.setLocation(mainFXML);
+    AnchorPane root = loader.load();
+
+    // wire up controller
+
+    MainController mainController = loader.getController();
+    GitManager manager = new GitManager();
+    mainController.setPrimaryStage(primaryStage);
+    mainController.setLogic(manager);
+
+
+    // set stage
+    primaryStage.setTitle("MAGit");
+    Scene scene = new Scene(root, 1050, 600);
+
+
+    primaryStage.setScene(scene);
+    primaryStage.show();
+}
 
     @FXML
     public void DeleteBranchOnAction() {
@@ -781,17 +832,15 @@ String repFolder;
                 if (manager.getDeletedFiles().size() != 0 ||
                         manager.getUpdatedFiles().size() != 0 ||
                         manager.getCreatedFiles().size() != 0) {
-                    popUpTextBox("There are unsaved changes in the WC. would you like to save it before checkout? (yes/no");
-                    if (InputTextBox==null) return;
+                    popUpConfirmationBox("There are unsaved changes in the WC. would you like to save it before checkout?","Yes","No");
+                    if(InputTextBox==null) return;
                     String toCommit = InputTextBox;
-                    InputTextBox = null;
-                    if (toCommit.toLowerCase().equals("yes".toLowerCase())) {
-                        try {
-                            manager.ExecuteCommit("commit before checkout to " + branchName + "Branch", true);
-                            dynamicStatusContentP.set("Checkout was executed");
-                        } catch (Exception e) {
-                            popUpMessage("Unable to create zip file");
-                            return;
+                    InputTextBox=null;
+                    if (toCommit.toLowerCase().equals("1")) {
+                        try{
+                            manager.ExecuteCommit("commit before checkout to " +manager.getGITRepository().getHeadBranch() + "Branch", true);}
+                        catch(Exception er) {
+                            out.println("Unable to create zip file");
                         }
                     }
                 }
@@ -837,7 +886,6 @@ String repFolder;
                     manager.getUpdatedFiles().size() != 0 ||
                     manager.getCreatedFiles().size() != 0) {
                 popUpConfirmationBox("There are unsaved changes in the WC. would you like to save it before checkout?","Yes","No");
-                out.println("There are unsaved changes in the WC. would you like to save it before checkout? (yes/no");
                 if(InputTextBox==null) return;
                 String toCommit = InputTextBox;
                 InputTextBox=null;

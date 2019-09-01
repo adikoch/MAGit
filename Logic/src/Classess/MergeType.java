@@ -15,7 +15,7 @@ public enum MergeType {
         situationString = name;
     }
 
-    Folder.Component decideFile(Map<Conflict,Folder> conflictMap, Folder.Component ourF, Folder.Component theirF, Folder f) {
+    Folder.Component decideFile(Map<Conflict,Folder> conflictMap, Folder.Component ourF, Folder.Component theirF,Folder.Component fatherF, Folder f) {
         switch (this) {
             case A://001000
             case G://101010
@@ -30,7 +30,7 @@ public enum MergeType {
             case H://110000
             case J://111000
             {
-                Conflict c = new Conflict(ourF.getComponentName(),ourF,theirF);
+                Conflict c = new Conflict(ourF.getComponentName(),ourF,theirF,fatherF);
                 conflictMap.put(c,f);
                 return  null;
             }
