@@ -3,9 +3,10 @@ package Classess;
 import com.sun.xml.internal.ws.api.Component;
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import generated.*;
+
 import puk.team.course.magit.ancestor.finder.AncestorFinder;
 import puk.team.course.magit.ancestor.finder.CommitRepresentative;
-//import puk.team.course.magit.ancestor.finder.AncestorFinder;
+import puk.team.course.magit.ancestor.finder.AncestorFinder;
 
 
 import javax.xml.bind.*;
