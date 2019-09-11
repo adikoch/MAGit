@@ -1242,8 +1242,10 @@ public class GitManager {
                     t = theirComponents.get(theirIndex);
                 if(fatherIndex < fatherComponents.size())
                     f = fatherComponents.get(fatherIndex);
-                Folder.Component c = e.decideFile(conflictMap, o, t,f, oursFolder);
-                mergedFolder.getComponents().add(c);
+                Folder.Component c = e.decideFile(conflictMap, o, t,f, mergedFolder);
+                if(c != null) {
+                    mergedFolder.getComponents().add(c);
+                }
             }
             if (isFatherExist.equals("1")) {
                 fatherIndex++;
@@ -1331,6 +1333,7 @@ public class GitManager {
 
     public ArrayList<String> getStringsForConflict(Conflict c) {
         ArrayList<String> returnedList = new ArrayList<>();
+        returnedList.add(c.conflictName);
             returnedList.add(c.our.getContent());
             returnedList.add(c.their.getContent());
             returnedList.add(c.father.getContent());

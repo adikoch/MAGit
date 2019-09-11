@@ -4,6 +4,10 @@ import java.awt.image.ByteLookupTable;
 
 public class Conflict {
 
+    public String getConflictName() {
+        return conflictName;
+    }
+
     String conflictName;
     //    Folder folderOfFile;
     Blob our;

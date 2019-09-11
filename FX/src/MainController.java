@@ -12,7 +12,9 @@ import javafx.beans.property.SimpleStringProperty;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.*;
@@ -21,10 +23,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
+import javafx.stage.*;
 
 
 import java.io.File;
@@ -41,7 +40,7 @@ import static java.lang.System.out;
 
 //import java.awt.*;
 
-public class MainController {
+public class MainController implements Initializable {
 
     //    @FXML BorderPane border;
 //    @FXML VBox vbox;
@@ -111,8 +110,8 @@ public class MainController {
 //        CommitTextP = new SimpleObjectProperty();
     }
 
-
-    public void initialize() {
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
         RepName.textProperty().bind(RepositoryNameP);
         RepPath.textProperty().bind(RepositoryPAthP);
         dynamicStatusContent.textProperty().bind(dynamicStatusContentP);
@@ -751,40 +750,53 @@ String repFolder;
         }
     }
 
-public void solveConflicts() {
+public void solveConflicts() throws IOException {
     Iterator entries =manager.conflictMap.entrySet().iterator();
     while (entries.hasNext()) {
         Map.Entry thisEntry = (Map.Entry) entries.next();
-        Conflict c = (Conflict) thisEntry.getValue();
-        Folder derectFolder = (Folder) thisEntry.getKey();
-        openconflictWindow(manager.getStringsForConflict(c));
+        Conflict c = (Conflict) thisEntry.getKey();
+        Folder derectFolder = (Folder) thisEntry.getValue();
+        Folder.Component com =  derectFolder.getComponentByName(c.getConflictName());
+        String s = openConflictWindow(manager.getStringsForConflict(c));
+       com.setDirectObject(new Blob(s));
     }
 }
 
-public void openconflictWindow(ArrayList<String> s) {
-
+@FXML
+public String openConflictWindow(ArrayList<String> s) throws IOException {
     FXMLLoader loader = new FXMLLoader();
 
     // load main fxml
-    URL mainFXML = getClass().getResource("/Newmain.fxml");
+    URL mainFXML = getClass().getResource("/Conflict.fxml");
     loader.setLocation(mainFXML);
-    AnchorPane root = loader.load();
+    AnchorPane root1 = loader.load();
+//    FXMLLoader loader = getClass().getResource("/Conflict.fxml");
+    ConflictController Con = loader.getController();
+    //Parent root1  = loader.load();
+    // load main fxml
+//    URL mainFXML = getClass().getResource("/Conflict.fxml");
+    //loader.setLocation(mainFXML);
+    //AnchorPane root = loader.load();
+Stage st = new Stage();
 
     // wire up controller
 
-    MainController mainController = loader.getController();
-    GitManager manager = new GitManager();
-    mainController.setPrimaryStage(primaryStage);
-    mainController.setLogic(manager);
-
-
+    //ConflictController Con = loader.getController();
+    Con.FatherTextP.set(s.get(1));
+    Con.TheirTextP.set(s.get(2));
+    Con.OurTextP.set(s.get(3));
+    Con.setPrimaryStage(st);
+    Con.insertText.setEditable(true);
     // set stage
-    primaryStage.setTitle("MAGit");
-    Scene scene = new Scene(root, 1050, 600);
+    st.setTitle(s.get(0));
+    Scene scene = new Scene(root1, 1050, 600);
 
-
-    primaryStage.setScene(scene);
-    primaryStage.show();
+st.initStyle(StageStyle.DECORATED);
+    st.setScene(scene);
+    st.showAndWait();
+    InputTextBox =  Con.InsertTextP.getValue();
+return  InputTextBox;
+   // return Con.InsertTextP.toString();
 }
 
     @FXML
@@ -967,6 +979,8 @@ public void openconflictWindow(ArrayList<String> s) {
         else
             return null;
     }
+
+
 }
 
 //משימות
