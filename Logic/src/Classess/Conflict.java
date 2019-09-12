@@ -10,16 +10,28 @@ public class Conflict {
 
     String conflictName;
     //    Folder folderOfFile;
-    Blob our;
-    Blob their;
+    Folder.Component our;
+    Folder.Component their;
     String pathInFolder;
-    Blob father;
+    Folder.Component father;
+
+    public Folder.Component getOur() {
+        return our;
+    }
+
+    public Folder.Component getTheir() {
+        return their;
+    }
+
+    public Folder.Component getFather() {
+        return father;
+    }
 
     public Conflict(String conflict, Folder.Component ourIn, Folder.Component theirIn, Folder.Component fatherIn) {
         conflictName = conflict;
-        our = (Blob) ourIn.getDirectObject();
-        their = (Blob) theirIn.getDirectObject();
-        father = (Blob) fatherIn.getDirectObject();
+        our =  ourIn;
+        their =  theirIn;
+        father = fatherIn;
 //pathInFolder = pathInFolderIn;
     }
 }

@@ -30,9 +30,11 @@ public enum MergeType {
             case H://110000
             case J://111000
             {
-                Conflict c = new Conflict(ourF.getComponentName(),ourF,theirF,fatherF);
-                conflictMap.put(c,f);
-                return  null;
+                Conflict con = new Conflict(ourF.getComponentName(),ourF,theirF,fatherF);
+                conflictMap.put(con,f);
+                Folder.Component c = new Folder.Component(con.conflictName,null,FolderType.Blob,null,null);
+
+                return  c;
             }
             case E://100000
             case I://110100

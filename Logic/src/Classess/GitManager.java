@@ -73,7 +73,7 @@ public class GitManager {
     }
 
 
-    static String generateSHA1FromString(String str) {
+   public static String generateSHA1FromString(String str) {
         return org.apache.commons.codec.digest.DigestUtils.sha1Hex(str);
     }
 
@@ -751,6 +751,7 @@ public class GitManager {
 
             if (c.getComponentType().equals(FolderType.Blob)) {
                 Blob b = (Blob) c.getDirectObject();
+                if(b != null)
                 createFile(c.getComponentName(), b.getContent(), pathForFile, getDateFromString(c.getLastUpdateDate()));/////////////gbch,,,,,
             } else {
                 new File(pathForFile.toString() + "\\" + c.getComponentName()).mkdirs();
@@ -1243,9 +1244,8 @@ public class GitManager {
                 if(fatherIndex < fatherComponents.size())
                     f = fatherComponents.get(fatherIndex);
                 Folder.Component c = e.decideFile(conflictMap, o, t,f, mergedFolder);
-                if(c != null) {
                     mergedFolder.getComponents().add(c);
-                }
+
             }
             if (isFatherExist.equals("1")) {
                 fatherIndex++;
@@ -1334,9 +1334,12 @@ public class GitManager {
     public ArrayList<String> getStringsForConflict(Conflict c) {
         ArrayList<String> returnedList = new ArrayList<>();
         returnedList.add(c.conflictName);
-            returnedList.add(c.our.getContent());
-            returnedList.add(c.their.getContent());
-            returnedList.add(c.father.getContent());
+        Blob b = (Blob)c.our.getDirectObject();
+            returnedList.add(b.getContent());
+            b = (Blob)c.their.getDirectObject();
+            returnedList.add(b.getContent());
+            b = (Blob)c.father.getDirectObject();
+            returnedList.add(b.getContent());
             return  returnedList;
         }
 

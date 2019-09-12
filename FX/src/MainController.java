@@ -758,7 +758,27 @@ public void solveConflicts() throws IOException {
         Folder derectFolder = (Folder) thisEntry.getValue();
         Folder.Component com =  derectFolder.getComponentByName(c.getConflictName());
         String s = openConflictWindow(manager.getStringsForConflict(c));
-       com.setDirectObject(new Blob(s));
+
+       Blob b = (Blob)c.getOur().getDirectObject();
+       Blob bb = (Blob)c.getTheir().getDirectObject();
+       if(s.equals(b.getContent()))
+        {
+            com.setDirectObject(c.getOur());
+
+        }
+        else if(s.equals((bb.getContent())))
+       {
+
+           com.setDirectObject(c.getTheir());
+       }
+       else
+       {
+           com.setDirectObject(new Blob(s));
+           com.setSha1(GitManager.generateSHA1FromString(s));
+           com.setLastUpdateDate(GitManager.getDateFromObject(null));
+           com.setLastUpdater(manager.getUserName());
+       }
+        GitManager.createFile(com.getComponentName(),s,c);
     }
 }
 
@@ -790,16 +810,21 @@ Stage st = new Stage();
     // set stage
     st.setTitle(s.get(0));
     Scene scene = new Scene(root1, 1050, 600);
-
+    Con.submit.setOnAction(event -> {
+        InputTextBox = Con.insertText.getText();
+        st.close();
+    });
 st.initStyle(StageStyle.DECORATED);
     st.setScene(scene);
-    st.showAndWait();
-    InputTextBox =  Con.InsertTextP.getValue();
-return  InputTextBox;
+        st.showAndWait();
+//    InputTextBox =  Con.InsertTextP.getValue();
+//return  InputTextBox;
    // return Con.InsertTextP.toString();
+return  InputTextBox;
 }
 
     @FXML
+
     public void DeleteBranchOnAction() {
         if (manager.getGITRepository() == null) {
             popUpMessage("There is no repository defined, no branches to delete");

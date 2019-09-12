@@ -7,6 +7,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
@@ -32,7 +33,7 @@ public class ConflictController implements Initializable {
     @FXML
     Button submit;
     @FXML
-    TextField insertText;
+    TextArea insertText;
     @FXML
     AnchorPane mainPane;
 
@@ -45,7 +46,7 @@ public MainController MC;
     public SimpleStringProperty TheirTextP;
 
 
-    public ConflictController() throws IOException {
+    public ConflictController() {
 
 //        FXMLLoader loader = new FXMLLoader();
 //
@@ -89,7 +90,9 @@ public MainController MC;
         Ourstext.textProperty().bind(OurTextP);
         theirsText.textProperty().bind(TheirTextP);
         FatherText.textProperty().bind(FatherTextP);
-        insertText.textProperty().bind(InsertTextP);
+       // insertText.textProperty().bind(InsertTextP);
+        insertText.setEditable(true);
+
 
     }
 
@@ -99,7 +102,7 @@ public MainController MC;
 @FXML
     public String submitOnAction()
     {
-        MC.InputTextBox = InsertTextP.getValue();
+        MC.InputTextBox = insertText.getText();
         return InsertTextP.toString();
     }
 //okButton.setOnAction(event -> {
