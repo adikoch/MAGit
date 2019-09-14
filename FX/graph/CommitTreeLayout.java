@@ -1,9 +1,8 @@
-package Classess;
+package graph;
 
 import com.fxgraph.graph.Graph;
 import com.fxgraph.graph.ICell;
 import com.fxgraph.layout.Layout;
-import Classess.CommitNode;
 
 import java.util.List;
 

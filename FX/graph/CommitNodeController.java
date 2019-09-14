@@ -1,4 +1,4 @@
-package Classess;
+package graph;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -11,6 +11,8 @@ public class CommitNodeController {
     @FXML private Label messageLabel;
     @FXML private Label committerLabel;
     @FXML private Circle CommitCircle;
+
+
 
     public void setCommitTimeStamp(String timeStamp) {
         commitTimeStampLabel.setText(timeStamp);

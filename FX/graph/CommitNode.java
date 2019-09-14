@@ -1,4 +1,4 @@
-package Classess;
+package graph;
 
 import com.fxgraph.cells.AbstractCell;
 import com.fxgraph.graph.Graph;
@@ -23,6 +23,7 @@ public class CommitNode extends AbstractCell {
         this.timestamp = timestamp;
         this.committer = committer;
         this.message = message;
+        //this.commitNodeController?
     }
 
     @Override

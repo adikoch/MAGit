@@ -26,7 +26,7 @@ public class Runner {
         int result = 0;
         MainMenu menu = new MainMenu();
         String userInput = "0";
-        while (!isValid ||  !userInput.equals("14")) {
+        while (!isValid || !userInput.equals("14")) {
             if (isValid) {
                 out.println(System.lineSeparator());
                 menu.show();
@@ -103,7 +103,7 @@ public class Runner {
                 break;
 
             case (13):
-                SwitchPointingOfHeadBranch();
+                //  SwitchPointingOfHeadBranch();
 
             case (14):
                 out.println("Goodbye");
@@ -186,9 +186,11 @@ public class Runner {
                 } else isValid = true;
             }
         }//valid:
-        try{
-            manager.CreatBranch(newBranchName);}
-        catch(IOException e) {out.println("Reading text file failed");}
+        try {
+            manager.CreatBranch(newBranchName);
+        } catch (IOException e) {
+            out.println("Reading text file failed");
+        }
     }
 
 
@@ -205,8 +207,7 @@ public class Runner {
 //                return;
 //            }
 //        }
-        if(!isFromXml)
-        {
+        if (!isFromXml) {
             out.println("Enter the path for the new repository: ");
 
             while (!isValid) {
@@ -236,9 +237,7 @@ public class Runner {
             } catch (IllegalArgumentException e) {
                 out.println("was unable to generate folder from commit object");
             }// what to say
-        }
-        else
-        {
+        } else {
             try {
                 manager.switchRepository(pathFromXml);
             } catch (IOException e) {
@@ -247,9 +246,6 @@ public class Runner {
                 out.println("was unable to generate folder from commit object");
             }// what to say
         }
-
-
-
 
 
     }
@@ -276,8 +272,8 @@ public class Runner {
             } catch (Exception e) {
                 out.println("There was a problem reaching the path");
             }
-            if(repPath.equals(""))
-                pathIsExist=false;
+            if (repPath.equals(""))
+                pathIsExist = false;
         }
 
         out.println("Choose a name for the new repository: ");
@@ -291,8 +287,8 @@ public class Runner {
             } catch (Exception e) {
                 out.println("There was a problem reaching the path");
             }
-            if(repName.equals(""))
-                repName=null;
+            if (repName.equals(""))
+                repName = null;
         }
 
         try {
@@ -368,7 +364,7 @@ public class Runner {
         Scanner sc = new Scanner(System.in);
 
         String branchName = sc.nextLine();
-        if(manager.getGITRepository().getBranchByName(branchName) != null) {
+        if (manager.getGITRepository().getBranchByName(branchName) != null) {
             try {
                 manager.ExecuteCommit("", false);
                 if (manager.getDeletedFiles().size() != 0 ||
@@ -413,7 +409,7 @@ public class Runner {
 
 
         boolean isValid = false;
-        boolean isExist= true;
+        boolean isExist = true;
         Scanner sc = new Scanner(System.in);
         String xmlPath = null;
         Path newXmlPath = null;
@@ -421,10 +417,11 @@ public class Runner {
 
         out.println("Please enter the path to import xml from: ");
         while (!isValid) {
-            if(!isExist)
-            {
-                try{isExist=Files.exists(newXmlPath);}
-                catch(SecurityException e) {out.println("The wanted path does not exist, please try again");
+            if (!isExist) {
+                try {
+                    isExist = Files.exists(newXmlPath);
+                } catch (SecurityException e) {
+                    out.println("The wanted path does not exist, please try again");
                 }
             }
             while (xmlPath == null || !isExist) {
@@ -432,24 +429,25 @@ public class Runner {
                     out.println("The wanted path does not exist, please try again");
                 }
                 xmlPath = sc.nextLine();
-                if(!xmlPath.substring(xmlPath.length() - 4).equals(".xml"))
-                {
-                    xmlPath+="\\.xml";
+                if (!xmlPath.substring(xmlPath.length() - 4).equals(".xml")) {
+                    xmlPath += "\\.xml";
                 }
 
-                try{newXmlPath = Paths.get(xmlPath);}//return?
-                catch(InvalidPathException e) {
-                    isValid=false;
-                    xmlPath=null;
+                try {
+                    newXmlPath = Paths.get(xmlPath);
+                }//return?
+                catch (InvalidPathException e) {
+                    isValid = false;
+                    xmlPath = null;
                     out.println("The wanted path does not exist, please try again");
                 }
             }
             String checkIfxml = xmlPath;
-            try{
-                isExist=Files.exists(Paths.get(checkIfxml)); }
-            catch (InvalidPathException e) {
-                isExist=false;
-                xmlPath=null;
+            try {
+                isExist = Files.exists(Paths.get(checkIfxml));
+            } catch (InvalidPathException e) {
+                isExist = false;
+                xmlPath = null;
                 out.println("The wanted path is not an xml file, please try again");
             }
             if (!isExist) {
@@ -460,20 +458,19 @@ public class Runner {
             } else isValid = true;
         }//i have a valid path from the user, can call ImportRepositoryFromXML with xmlPath
         try {
-            manager.ImportRepositoryFromXML(true,xmlPath);
-        }
-        catch(IOException e) {//קיים כבר רפוזטורי עם אותו שם באותה התיקייה שקיבלנו מהאקסמל
+            manager.ImportRepositoryFromXML(true, xmlPath);
+        } catch (IOException e) {//קיים כבר רפוזטורי עם אותו שם באותה התיקייה שקיבלנו מהאקסמל
             //רוצה לשאול מה אתה רוצה לעשות
             //ask all the questions //
             // רוצה לקרוא לסוויצ רפוזטורי עם מה שחזר מהאקספשן// after catch, meaning the user want to over write the existing repo meaning sending to ImportRepositoryFromXML with e.
-            boolean isValidOS=true;
+            boolean isValidOS = true;
             Scanner scanner = new Scanner(System.in);
-            String userInput=null;
+            String userInput = null;
 
             out.println("There is already a reposetory with the same name at the wanted location");
             out.println("Please enter O to over write the existing, S to switch to the existing one");
 
-            while( userInput==null || !isValidOS  ) {
+            while (userInput == null || !isValidOS) {
                 if (userInput != null) {
                     out.println("Invalid input, please try again");
                 }
@@ -486,29 +483,33 @@ public class Runner {
                 } else if (userInput.toLowerCase().equals("o")) { // overwrite the existing
                     isValidOS = true;
 
-                        manager.deleteFilesInFolder(new File(e.getMessage()));
-                        manager.deleteFilesInFolder(new File(e.getMessage() + "\\.magit"));
+                    manager.deleteFilesInFolder(new File(e.getMessage()));
+                    manager.deleteFilesInFolder(new File(e.getMessage() + "\\.magit"));
                     try {
                         Files.delete((Paths.get(e.getMessage())));
 
-                }// delete the existing, prepering for loading , need the path of the folder to erase(c:\repo1)
-                         catch(IOException e3){out.println("Could not delete the old reposetory, check if it is open some where else");}//ואיך שהוא לחזור לתפריט הראשי
-                        /////
-                        try {
-                            manager.ImportRepositoryFromXML(false, xmlPath);
-                        } catch (Exception e4) {
-                            out.println("Could not import from xml");
-                        }
-
-                    } else//not o not s
-                    {
-                        isValidOS = false;
+                    }// delete the existing, prepering for loading , need the path of the folder to erase(c:\repo1)
+                    catch (IOException e3) {
+                        out.println("Could not delete the old reposetory, check if it is open some where else");
+                    }//ואיך שהוא לחזור לתפריט הראשי
+                    /////
+                    try {
+                        manager.ImportRepositoryFromXML(false, xmlPath);
+                    } catch (Exception e4) {
+                        out.println("Could not import from xml");
                     }
+
+                } else//not o not s
+                {
+                    isValidOS = false;
                 }
             }
+        }
         //over write= במקום מה שיש בתיקייה תהיה את התיקייה החדשה
         //switch=לשלוח לסוויץ המקורית עם הפאט שקיבלתי בתוך managerReposetory
-        catch (Exception e) {System.out.println(e.getMessage());}
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
 
 
         //here have the path of the xml, before importing reposetory from xml want to check if i already have a reposetory in the wc or not
@@ -519,69 +520,70 @@ public class Runner {
         //
 
     }
-    public void SwitchPointingOfHeadBranch()
-    {
-
-        Boolean isExist=false;
-        Scanner sc= new Scanner(System.in);
-        String userInput=null;
-        Path pathToSearchZip=null;
-        Commit newCommit;
-        Folder folderOfCommit;
-
-        while(userInput==null||!isExist)
-        {
-            if(userInput==null)
-            {
-                out.println("Please enter the sha1 you would like to point by the head branch");
-            }
-            userInput=sc.nextLine();
-            pathToSearchZip=Paths.get(manager.getGITRepository().getRepositoryPath().toString()+"\\.magit\\objects\\"+userInput+".zip");//c:\rep\.magit\objects
-            isExist=Files.exists(pathToSearchZip);//isExist true=> לבדוק אם זה באמת זיפ של קומיט או של בלוב או פולדר
-        }//sha1 takin
-
-        try {newCommit= manager.getCommitFromSha1UsingFiles(manager.getGITRepository().getRepositoryPath().toString(), userInput);}
-        catch (Exception e) {
-            out.println(e.getMessage());
-            return;}
-        try {newCommit.setRootFolder(manager.generateFolderFromCommitObject(newCommit.getRootFolderSHA1()));}
-        catch(Exception e) {out.println(e.getMessage());}
-
-        //checking if there are open changes in the WC
-        try {
-            manager.ExecuteCommit("", false);
-            if (manager.getDeletedFiles().size() != 0 ||
-                    manager.getUpdatedFiles().size() != 0 ||
-                    manager.getCreatedFiles().size() != 0) {
-                out.println("There are unsaved changes in the WC. would you like to save it before checkout? (yes/no");
-                String toCommit = sc.nextLine();
-                if (toCommit.toLowerCase().equals("yes".toLowerCase())) {
-                    try{
-                        manager.ExecuteCommit("commit before checkout to " + sc.toString() + "Branch", true);}
-                    catch(Exception er) {
-                        out.println("Unable to create zip file");
-                    }
-                }
-            }
-
-            //text file update:
-            manager.updateFile(userInput);
-            manager.getGITRepository().getHeadBranch().setPointedCommit(newCommit);
-
-
-            manager.executeCheckout(manager.getGITRepository().getHeadBranch().getBranchName());
-            manager.getCreatedFiles().clear();
-            manager.getDeletedFiles().clear();
-            manager.getUpdatedFiles().clear();
-        } catch (Exception er) {
-            out.println("Unable to create zip file");
-        }
-
-//        try {manager.switchPointingOfHeadBranch(userInput);}//with the wanted sha1, after checking if there are open changes and deciding what to do
-//        catch (Exception err) {
-//            out.println(err.getMessage());
-//            return;}
-        ShowFilesOfCurrCommit();
-
-    }
 }
+//    public void SwitchPointingOfHeadBranch()
+//    {
+//
+//        Boolean isExist=false;
+//        Scanner sc= new Scanner(System.in);
+//        String userInput=null;
+//        Path pathToSearchZip=null;
+//        Commit newCommit;
+//        Folder folderOfCommit;
+//
+//        while(userInput==null||!isExist)
+//        {
+//            if(userInput==null)
+//            {
+//                out.println("Please enter the sha1 you would like to point by the head branch");
+//            }
+//            userInput=sc.nextLine();
+//            pathToSearchZip=Paths.get(manager.getGITRepository().getRepositoryPath().toString()+"\\.magit\\objects\\"+userInput+".zip");//c:\rep\.magit\objects
+//            isExist=Files.exists(pathToSearchZip);//isExist true=> לבדוק אם זה באמת זיפ של קומיט או של בלוב או פולדר
+//        }//sha1 takin
+//
+//        try {newCommit= manager.getCommitFromSha1UsingFiles(manager.getGITRepository().getRepositoryPath().toString(), userInput);}
+//        catch (Exception e) {
+//            out.println(e.getMessage());
+//            return;}
+//        try {newCommit.setRootFolder(manager.generateFolderFromCommitObject(newCommit.getRootFolderSHA1()));}
+//        catch(Exception e) {out.println(e.getMessage());}
+//
+//        //checking if there are open changes in the WC
+//        try {
+//            manager.ExecuteCommit("", false);
+//            if (manager.getDeletedFiles().size() != 0 ||
+//                    manager.getUpdatedFiles().size() != 0 ||
+//                    manager.getCreatedFiles().size() != 0) {
+//                out.println("There are unsaved changes in the WC. would you like to save it before checkout? (yes/no");
+//                String toCommit = sc.nextLine();
+//                if (toCommit.toLowerCase().equals("yes".toLowerCase())) {
+//                    try{
+//                        manager.ExecuteCommit("commit before checkout to " + sc.toString() + "Branch", true);}
+//                    catch(Exception er) {
+//                        out.println("Unable to create zip file");
+//                    }
+//                }
+//            }
+//
+//            //text file update:
+//            manager.updateFile(userInput);
+//            manager.getGITRepository().getHeadBranch().setPointedCommit(newCommit);
+//
+//
+//            manager.executeCheckout(manager.getGITRepository().getHeadBranch().getBranchName());
+//            manager.getCreatedFiles().clear();
+//            manager.getDeletedFiles().clear();
+//            manager.getUpdatedFiles().clear();
+//        } catch (Exception er) {
+//            out.println("Unable to create zip file");
+//        }
+//
+////        try {manager.switchPointingOfHeadBranch(userInput);}//with the wanted sha1, after checking if there are open changes and deciding what to do
+////        catch (Exception err) {
+////            out.println(err.getMessage());
+////            return;}
+//        ShowFilesOfCurrCommit();
+//
+//    }
+//}

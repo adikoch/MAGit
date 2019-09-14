@@ -365,7 +365,7 @@ public class GitManager {
         GITRepository.setHeadBranch(GITRepository.getBranchByName(content));
 
 
-        getCommitForBranches(newRepPath);
+        getCommitForBranches();
 
 
     }
@@ -401,44 +401,106 @@ public class GitManager {
     }
      */
 
-    public void getCommitForBranches(Path newRepPath) throws IOException, IllegalArgumentException { //V
+    public void getCommitForBranches() throws IOException, IllegalArgumentException { //V
         Folder folder = null;
-        String commitContent = null;
         for (Branch b : GITRepository.getBranches()) {
-            Path commitPath = Paths.get(newRepPath + "\\.magit\\objects\\" + b.getPointedCommitSHA1() + ".zip");
-            try {
-                commitContent = extractZipFile(commitPath);
-            } catch (IOException e) {
-                throw new IOException();
-            }// opening zip file failed
-            BufferedReader br = new BufferedReader(new StringReader(commitContent));
-            ArrayList<String> st = new ArrayList<>();
-            String a;
-            int i = 0;
-            while ((a = br.readLine()) != null) {
-                if (a.equals("null")) {
-                    st.add(i, null);
-                } else {
-                    st.add(i, a);
-                }
-                i++;
-            }
-            Commit newCommit = new Commit(st);
+            //try{
+            Commit newCommit =createCommitRec(b.getPointedCommitSHA1());
+            getGITRepository().getCommitMap().put(newCommit.getSHA(),newCommit);
+        //}
+            //catch(IOException e){}
+//
+//            Path commitPath = Paths.get(getGITRepository().getRepositoryPath().toString() + "\\.magit\\objects\\" + b.getPointedCommitSHA1() + ".zip");
+//            try {
+//
+//                commitContent = extractZipFile(commitPath);//5 השורות
+//            } catch (IOException e) {
+//                throw new IOException();
+//            }// opening zip file failed
+//            BufferedReader br = new BufferedReader(new StringReader(commitContent));
+//            ArrayList<String> st = new ArrayList<>();
+//            String a;
+//            int i = 0;
+//            while ((a = br.readLine()) != null) {
+//                if (a.equals("null")) {
+//                    st.add(i, null);
+//                } else {
+//                    st.add(i, a);
+//                }
+//                i++;
+//            }
+//            Commit newCommit = new Commit(st);//--זה יקרה כבר בתוך הרקורסיה של לבנות את המפת קומיטים השלמה
+////כאן
 
             b.setPointedCommit(newCommit);
             //GITRepository.getRepositoryName() = ךהחליף שם של רפוסיטורי
             //לא יצרנו קומיט שההד יצביע עליו כי אין צורך
+//            try {
+//                folder = generateFolderFromCommitObject(newCommit.getRootFolderSHA1());
+//            } catch (IOException er) {
+//                throw new IllegalArgumentException();
+//            }// was unable to generateFolderFromCommitObject
+//            b.getPointedCommit().setRootFolder(folder);
+            newCommit.setCommitFileContentToSHA();
+            //br.close();
+            GITRepository.getCommitList().put(newCommit.getSHA(), newCommit);
+            //מיותר כבר הוספנו למעלה
+        }
+    }
+
+    public Commit createCommitRec(String sha1) throws IOException
+    {
+        String commitContent;
+        Path commitPath = Paths.get(getGITRepository().getRepositoryPath().toString() + "\\.magit\\objects\\" + sha1 + ".zip");
+        try {
+            commitContent = extractZipFile(commitPath);//5 השורות
+        } catch (IOException e) {
+            throw new IOException();
+        }// opening zip file failed
+        BufferedReader br = new BufferedReader(new StringReader(commitContent));
+        ArrayList<String> st = new ArrayList<>();
+        String a;
+        int i = 0;
+        while ((a = br.readLine()) != null) {
+            if (a.equals("null")) {
+                st.add(i, null);
+            } else {
+                st.add(i, a);
+            }
+            i++;
+        }
+        br.close();
+
+        Commit newCommit = new Commit(st);
+        newCommit.setSHA1(sha1);
+
+        //הוספה של הקומיט למאפ אם לא קיים:
+        if(getGITRepository().getCommitMap().get(newCommit.getSHA())==null)
+        {
+            getGITRepository().getCommitMap().put(newCommit.getSHA(),newCommit);
+        }
+
+        //קריאות רקורסיביות:
+
             try {
-                folder = generateFolderFromCommitObject(newCommit.getRootFolderSHA1());
+                newCommit.setRootFolder(generateFolderFromCommitObject(newCommit.getRootFolderSHA1()));
             } catch (IOException er) {
                 throw new IllegalArgumentException();
             }// was unable to generateFolderFromCommitObject
-            b.getPointedCommit().setRootFolder(folder);
-            newCommit.setCommitFileContentToSHA();
-            br.close();
-            GITRepository.getCommitList().put(newCommit.getSHA(), newCommit);
+        if(newCommit.getSHA1PreveiousCommit()!=null)//father #1
+        {
+            createCommitRec(newCommit.getSHA1PreveiousCommit());
         }
+
+        if(newCommit.getSHA1anotherPreveiousCommit()!=null)//father #2
+        {
+           createCommitRec(newCommit.getSHA1anotherPreveiousCommit());
+        }
+
+        return newCommit;
+
     }
+
 
 
     public Folder generateFolderFromCommitObject(String rootFolderName) throws IOException {//V
