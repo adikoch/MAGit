@@ -1,6 +1,7 @@
 package Classess;
 
 import java.awt.image.ByteLookupTable;
+import java.nio.file.Path;
 
 public class Conflict {
 
@@ -12,7 +13,12 @@ public class Conflict {
     //    Folder folderOfFile;
     Folder.Component our;
     Folder.Component their;
-    String pathInFolder;
+
+    public Path getPathInFolder() {
+        return pathInFolder;
+    }
+
+    Path pathInFolder;
     Folder.Component father;
 
     public Folder.Component getOur() {
@@ -27,11 +33,12 @@ public class Conflict {
         return father;
     }
 
-    public Conflict(String conflict, Folder.Component ourIn, Folder.Component theirIn, Folder.Component fatherIn) {
+    public Conflict(String conflict, Folder.Component ourIn, Folder.Component theirIn, Folder.Component fatherIn, Path path) {
         conflictName = conflict;
         our =  ourIn;
         their =  theirIn;
         father = fatherIn;
+        pathInFolder = path;
 //pathInFolder = pathInFolderIn;
     }
 }

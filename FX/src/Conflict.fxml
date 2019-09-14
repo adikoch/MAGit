@@ -21,9 +21,9 @@
           <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
         </rowConstraints>
          <children>
-            <Label fx:id="Ourstext" prefHeight="151.0" prefWidth="197.0" text=" our" />
-            <Label fx:id="FatherText" prefHeight="151.0" prefWidth="264.0" text="father" GridPane.columnIndex="1" />
-            <Label fx:id="theirsText" prefHeight="151.0" prefWidth="332.0" text="their" GridPane.columnIndex="2" />
+            <TextArea fx:id="Ourstext" prefHeight="200.0" prefWidth="200.0" />
+            <TextArea fx:id="FatherText" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" />
+            <TextArea fx:id="theirsText" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" />
          </children>
       </GridPane>
       <Button fx:id="submit" layoutX="519.0" layoutY="313.0" mnemonicParsing="false" onAction="#submitOnAction" text="submit" />
@@ -47,6 +47,6 @@
             <Font name="System Bold" size="18.0" />
          </font>
       </Label>
-      <TextArea fx:id="insertText" layoutX="5.0" layoutY="200.0" prefHeight="200.0" prefWidth="472.0" />
+      <TextArea fx:id="insertText" layoutX="5.0" layoutY="229.0" prefHeight="171.0" prefWidth="472.0" />
    </children>
 </AnchorPane>

@@ -31,6 +31,7 @@
                                 <MenuItem fx:id="ImportRepositoryFromXML" mnemonicParsing="false" onAction="#ImportRepFromXmlOnAction" text="Import Repository From XML" />
                                 <MenuItem fx:id="CreateEmptyRepository" mnemonicParsing="false" onAction="#CreateEmptyRepositoryOnAction" text="Create Empty Repository" />
                                 <MenuItem fx:id="SwitchRepository" mnemonicParsing="false" onAction="#SwitchRepositoryOnAction" text="Switch Repository" />
+                        <MenuItem fx:id="CloneRemoteReposoitory" mnemonicParsing="false" onAction="#CloneRemoteRepositoryOnAction" text="Clone Remote Repository" />
                             </items>
                         </Menu>
                         <Menu mnemonicParsing="false" text="Commit">

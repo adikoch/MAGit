@@ -36,6 +36,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.ArrayList;
 
+import static java.lang.System.mapLibraryName;
 import static java.lang.System.out;
 
 //import java.awt.*;
@@ -53,6 +54,8 @@ public class MainController implements Initializable {
     MenuItem CreateEmptyRepository;
     @FXML
     MenuItem SwitchRepository;
+    @FXML
+    MenuItem CloneRemoteReposoitory;
     @FXML
     MenuItem ShowCommitsInfo;
     @FXML
@@ -133,9 +136,9 @@ public class MainController implements Initializable {
     public void CommitOnAction() {
 
         popUpTextBox("Please enter the description of your commit");
-        if (InputTextBox==null) return;
-        String description= InputTextBox;
-        InputTextBox= null;
+        if (InputTextBox == null) return;
+        String description = InputTextBox;
+        InputTextBox = null;
 
 
 //        Label label = new Label("Please enter the description of your commit");
@@ -149,42 +152,26 @@ public class MainController implements Initializable {
 //        Stage popUpWindow = new Stage();
 //        popUpWindow.initModality(Modality.APPLICATION_MODAL);
 //        okButton.setOnAction(event -> {
-            try {
-                manager.ExecuteCommit(description, true);
-                manager.getCreatedFiles().clear();
-                manager.getDeletedFiles().clear();
-                manager.getUpdatedFiles().clear();
-                dynamicStatusContentP.set("Commit finished Successfully");
+        try {
+            manager.ExecuteCommit(description, true);
+            manager.getCreatedFiles().clear();
+            manager.getDeletedFiles().clear();
+            manager.getUpdatedFiles().clear();
+            dynamicStatusContentP.set("Commit finished Successfully");
 //                CommitTextP.set(manager.getGITRepository().getHeadBranch().getPointedCommit().getSHAContent());
-            } catch (Exception e) {
-                popUpMessage("could not execute commit");//***
-            }
-//            out.println(newText.getText());
-//            popUpWindow.close();
-
-
-//        FlowPane root = new FlowPane();
-//        root.setPadding(new Insets(10));
-//        root.setHgap(10);
-//
-//        root.getChildren().addAll(label, newText, okButton);
-//
-//        Scene scene = new Scene(root, 500, 120, Color.WHITE);
-//        popUpWindow.setTitle("Submit description");
-//        popUpWindow.setScene(scene);
-//        popUpWindow.showAndWait();
-
+        } catch (Exception e) {
+            popUpMessage("could not execute commit");//***
+        }
     }
-
 
 
     @FXML
     public void ShowStatusOnAction() {
-        StringBuilder sb= new StringBuilder();
+        StringBuilder sb = new StringBuilder();
 
         sb.append("The current status of WC is:\n");
         sb.append(System.lineSeparator());
-        Stage popUpWindow= new Stage();
+        Stage popUpWindow = new Stage();
         Button closeButton = new Button("Close");
         closeButton.setOnAction(event -> popUpWindow.close());
 
@@ -225,7 +212,6 @@ public class MainController implements Initializable {
         popUpWindow.close();
 
     }
-
 
 
 //    @FXML
@@ -291,28 +277,28 @@ public class MainController implements Initializable {
     public void ShowCommitFilesOnAction() {
         //כרגע מבקש שא1 של קומיט, כשיהיה גרף כאשר המשתמש לחץ קודם על אחד מהקומיטים נעביר לפונק הזו את הsha של הקומיט הלחוץ
         popUpTextBox("Please enter the sha1 of the wanted commit");
-        if (InputTextBox==null) return;
-        String commitSha1= InputTextBox;
-        InputTextBox= null;
+        if (InputTextBox == null) return;
+        String commitSha1 = InputTextBox;
+        InputTextBox = null;
 
-        try{
-            Commit commit= manager.getCommitFromSha1UsingFiles(manager.getGITRepository().getRepositoryPath().toString(),commitSha1);
-            Folder folderOfCommit= manager.generateFolderFromCommitObject(commit.getRootFolderSHA1());
+        try {
+            Commit commit = manager.getCommitFromSha1UsingFiles(manager.getGITRepository().getRepositoryPath().toString(), commitSha1);
+            Folder folderOfCommit = manager.generateFolderFromCommitObject(commit.getRootFolderSHA1());
             TreeItem<String> toShow;//= new TreeItem<>(manager.getGITRepository().getRepositoryName());
 
-            toShow=showTreeLookRec(folderOfCommit,manager.getGITRepository().getRepositoryPath().toString());
+            toShow = showTreeLookRec(folderOfCommit, manager.getGITRepository().getRepositoryPath().toString());
             toShow.setExpanded(true);
 
             //showing
             //TreeView<String> comtree = new TreeView<> (toShow);
             //StackPane root = new StackPane();
             //root.getChildren().add(comtree);
-           // primaryStage.setScene(new Scene(root, 300, 250));
+            // primaryStage.setScene(new Scene(root, 300, 250));
             //primaryStage.show();
             CommitText.setRoot(toShow);
+        } catch (Exception e) {
+            popUpMessage("Unable to generate commit using the files");
         }
-
-        catch(Exception e){popUpMessage("Unable to generate commit using the files");}
 
         try {
             String FilesOfCommit = manager.showFilesOfCommit();
@@ -325,24 +311,21 @@ public class MainController implements Initializable {
     }
 
 
-    public TreeItem<String> showTreeLookRec(Folder folder, String mainName){
+    public TreeItem<String> showTreeLookRec(Folder folder, String mainName) {
         TreeItem<String> folderItem = new TreeItem<String>(mainName);// (c.getComponentName());
 
-        for(Folder.Component c: folder.getComponents())
-        {
+        for (Folder.Component c : folder.getComponents()) {
             TreeItem<String> subFolderItem;// = new TreeItem<String>(c.getComponentName());// ();
 
-            if(c.getComponentType().equals(FolderType.Folder))
-            {
-                Folder recFolder= (Folder) c.getDirectObject();
-                subFolderItem=showTreeLookRec(recFolder ,c.getComponentName());
+            if (c.getComponentType().equals(FolderType.Folder)) {
+                Folder recFolder = (Folder) c.getDirectObject();
+                subFolderItem = showTreeLookRec(recFolder, c.getComponentName());
                 //subFolderItem.setValue(c.getComponentName());
                 subFolderItem.setExpanded(false);
                 //subFolderItem.getChildren().add();
 
 
-            }
-            else//if(c.getComponentType().equals(FolderType.Blob))
+            } else//if(c.getComponentType().equals(FolderType.Blob))
             {
                 subFolderItem = new TreeItem<>(c.getComponentName());
                 //subFolderItem.setExpanded(false);
@@ -362,9 +345,9 @@ public class MainController implements Initializable {
         if (manager.getGITRepository() != null) {
 
             popUpTextBox("Please enter the new username:");
-            if(InputTextBox==null) return;
+            if (InputTextBox == null) return;
             manager.updateNewUserNameInLogic(InputTextBox);
-            InputTextBox=null;
+            InputTextBox = null;
         } else {
             popUpMessage("There is no repository defined! no changes occurred");
         }
@@ -386,7 +369,6 @@ public class MainController implements Initializable {
     }
 
 
-
     @FXML
     public void ImportRepFromXmlOnAction() {
 
@@ -405,7 +387,7 @@ public class MainController implements Initializable {
             } catch (IOException e) {//קיים כבר רפוזטורי עם אותו שם באותה התיקייה שקיבלנו מהאקסמל
                 //popUpTextBox("There is already a repository with the same name at the wanted location\nPlease enter O to over write the existing, S to switch to the existing one");
                 popUpConfirmationBox("There is already a repository with the same name at the wanted location\nDo you want to override it or switch to it?", "Override", "Switch");
-                if(InputTextBox==null) return;
+                if (InputTextBox == null) return;
                 SorO = InputTextBox;
                 InputTextBox = null;
                 while (!isValid) {
@@ -451,7 +433,7 @@ public class MainController implements Initializable {
                     {
                         isValid = false;
                         popUpTextBox("please enter a valid input: O/S");
-                        if(InputTextBox==null) return;
+                        if (InputTextBox == null) return;
                         SorO = InputTextBox;
                         InputTextBox = null;
 
@@ -474,8 +456,7 @@ public class MainController implements Initializable {
         popUpWindow.initModality(Modality.APPLICATION_MODAL);
 
         ChoiceBox<String> menu = new ChoiceBox();
-        for (Branch b :manager.getGITRepository().getBranches())
-        {
+        for (Branch b : manager.getGITRepository().getBranches()) {
             String s = b.getBranchName();
             //t.addEventHandler();
             menu.getItems().add(s);
@@ -490,7 +471,7 @@ public class MainController implements Initializable {
         root.setPadding(new Insets(10));
         root.setHgap(10);
 
-        root.getChildren().addAll(label,menu, okButton);
+        root.getChildren().addAll(label, menu, okButton);
 
         Scene scene = new Scene(root, 500, 120, Color.WHITE);
         popUpWindow.setTitle("Submit text");
@@ -498,6 +479,7 @@ public class MainController implements Initializable {
         popUpWindow.showAndWait();
 
     }
+
     //פונקציה שמייצרת חלון חדש עם תיבת טקסט בפנים עם הטקסט שהיא מקלבת וכשלוחצים לה ok מחזירה לי את הטקסט שכתבו שם בתוך המשתנה מחלקה יוזראינפוט
     public void popUpTextBox(String textToUser) {
         Label label = new Label(textToUser);
@@ -526,9 +508,10 @@ public class MainController implements Initializable {
 
 
     }
-    public void popUpConfirmationBox(String textToUser,String option1, String option2) {
+
+    public void popUpConfirmationBox(String textToUser, String option1, String option2) {
         Label label = new Label(textToUser);
-       // TextField newText = new TextField();
+        // TextField newText = new TextField();
         Button firstButton = new Button(option1);
         Button secondButton = new Button(option2);
 
@@ -548,7 +531,7 @@ public class MainController implements Initializable {
         root.setPadding(new Insets(10));
         root.setHgap(10);
 
-        root.getChildren().addAll(label, firstButton,secondButton);
+        root.getChildren().addAll(label, firstButton, secondButton);
 
         Scene scene = new Scene(root, 500, 120, Color.WHITE);
         popUpWindow.setTitle("Submit text");
@@ -561,16 +544,16 @@ public class MainController implements Initializable {
     @FXML
     public void CreateEmptyRepositoryOnAction() {
         String repName;
-String repFolder;
+        String repFolder;
         String pathString = getFolderWithChooser("New repository's location");
         if (pathString != null) {
             popUpTextBox("Choose a name for the folder of the repository:");
-            if(InputTextBox==null) return;
+            if (InputTextBox == null) return;
             repFolder = InputTextBox;
             InputTextBox = null;
 
             popUpTextBox("Choose a name for the new repository:");
-            if(InputTextBox==null) return;
+            if (InputTextBox == null) return;
             repName = InputTextBox;
             InputTextBox = null;
 
@@ -590,7 +573,7 @@ String repFolder;
                 popUpMessage("File creation failed, nothing changed");
             }
         }
-}
+    }
 
     @FXML
     public void SwitchRepositoryOnAction() {
@@ -660,8 +643,7 @@ String repFolder;
 
         ArrayList<TreeItem<String>> products = new ArrayList<TreeItem<String>>();
 
-        for (Branch b :manager.getGITRepository().getBranches())
-        {
+        for (Branch b : manager.getGITRepository().getBranches()) {
             TreeItem t = new TreeItem(b.getBranchName());
             //t.addEventHandler();
             products.add(t);
@@ -681,9 +663,9 @@ String repFolder;
         String newBranchName;
 
         popUpTextBox("Please enter the name of the new branch");
-        if(InputTextBox==null) return;
+        if (InputTextBox == null) return;
         newBranchName = InputTextBox;//getting the name
-        InputTextBox=null;
+        InputTextBox = null;
         if (manager.getGITRepository().getBranchByName(newBranchName) != null) //checking if exist already
         {
             popUpMessage("Branch name already exist, please enter a different name");
@@ -692,16 +674,14 @@ String repFolder;
 
         }
 
-        try {
             manager.CreatBranch(newBranchName);
             dynamicStatusContentP.set("Creation of Branch finished Successfully");
-        } catch (IOException e) {
-            popUpMessage("Reading text file failed");
-        }
+
 
         //valid
 
     }
+
     @FXML
     public void mergeTwoBranchesOnAction() throws Exception {
         if (manager.getGITRepository() == null) {
@@ -721,27 +701,28 @@ String repFolder;
             manager.ExecuteCommit("", false);
             if (manager.getDeletedFiles().size() != 0 ||
                     manager.getUpdatedFiles().size() != 0 ||
-                    manager.getCreatedFiles().size() != 0){
-                popUpConfirmationBox("There are unsaved changes in the WC. would you like to save it before checkout?","Yes","No");
-                if(InputTextBox==null) return;
+                    manager.getCreatedFiles().size() != 0) {
+                popUpConfirmationBox("There are unsaved changes in the WC. would you like to save it before checkout?", "Yes", "No");
+                if (InputTextBox == null) return;
                 String toCommit = InputTextBox;
-                InputTextBox=null;
+                InputTextBox = null;
                 if (toCommit.toLowerCase().equals("1")) {
-                    try{
+                    try {
                         manager.ExecuteCommit(mergeDescription, true);
                         manager.getCreatedFiles().clear();
                         manager.getDeletedFiles().clear();
-                        manager.getUpdatedFiles().clear();}
-
-                    catch(Exception er) {
+                        manager.getUpdatedFiles().clear();
+                    } catch (Exception er) {
                         out.println("Unable to create zip file");
                     }
                 }
             }
 
-            manager.merge(theirBranchName, mergeDescription);
-            solveConflicts();
-
+            Folder f = manager.merge(theirBranchName);
+            popUpConflictWindow();
+            //solveConflicts();
+            manager.checkForEmptyFolders(f);
+            manager.createFilesAfterMerge(theirBranchName, mergeDescription, f);
             return;
 
         } else {
@@ -750,78 +731,115 @@ String repFolder;
         }
     }
 
-public void solveConflicts() throws IOException {
-    Iterator entries =manager.conflictMap.entrySet().iterator();
-    while (entries.hasNext()) {
-        Map.Entry thisEntry = (Map.Entry) entries.next();
-        Conflict c = (Conflict) thisEntry.getKey();
-        Folder derectFolder = (Folder) thisEntry.getValue();
-        Folder.Component com =  derectFolder.getComponentByName(c.getConflictName());
-        String s = openConflictWindow(manager.getStringsForConflict(c));
+    public void solveConflicts(String fileName) throws IOException {
 
-       Blob b = (Blob)c.getOur().getDirectObject();
-       Blob bb = (Blob)c.getTheir().getDirectObject();
-       if(s.equals(b.getContent()))
-        {
-            com.setDirectObject(c.getOur());
 
+        Iterator entries = manager.conflictMap.entrySet().iterator();
+        while (entries.hasNext()) {
+            Map.Entry thisEntry = (Map.Entry) entries.next();
+            Conflict c = (Conflict) thisEntry.getKey();
+            if (c.getConflictName().equals(fileName)) {
+                Folder derectFolder = (Folder) thisEntry.getValue();
+                Folder.Component com = derectFolder.getComponentByName(c.getConflictName());
+                String s = openConflictWindow(manager.getStringsForConflict(c));
+                InputTextBox = null;
+                Blob b = (Blob) c.getOur().getDirectObject();
+                Blob bb = (Blob) c.getTheir().getDirectObject();
+                if (s == null) {
+                    com.setDirectObject(null);
+                }
+                if (s.equals(b.getContent())) {
+                    com.setDirectObject(c.getOur());
+                } else if (s.equals((bb.getContent()))) {
+                    com.setDirectObject(c.getTheir());
+                    //GitManager.createFile(com.getComponentName(),s,c.getPathInFolder(),new Date().getTime());
+                } else {
+                    com.setDirectObject(new Blob(s));
+                    com.setSha1(GitManager.generateSHA1FromString(s));
+                    com.setLastUpdateDate(GitManager.getDateFromObject(null));
+                    com.setLastUpdater(manager.getUserName());
+                    //GitManager.createFile(com.getComponentName(),s,c.getPathInFolder(),new Date().getTime());
+
+                }
+                break;
+            }
         }
-        else if(s.equals((bb.getContent())))
-       {
-
-           com.setDirectObject(c.getTheir());
-       }
-       else
-       {
-           com.setDirectObject(new Blob(s));
-           com.setSha1(GitManager.generateSHA1FromString(s));
-           com.setLastUpdateDate(GitManager.getDateFromObject(null));
-           com.setLastUpdater(manager.getUserName());
-       }
-        GitManager.createFile(com.getComponentName(),s,c);
     }
-}
 
-@FXML
-public String openConflictWindow(ArrayList<String> s) throws IOException {
-    FXMLLoader loader = new FXMLLoader();
+    //    public void solveConflicts() throws IOException {
+//        Iterator entries =manager.conflictMap.entrySet().iterator();
+//        while (entries.hasNext()) {
+//            Map.Entry thisEntry = (Map.Entry) entries.next();
+//            Conflict c = (Conflict) thisEntry.getKey();
+//            Folder derectFolder = (Folder) thisEntry.getValue();
+//            Folder.Component com = derectFolder.getComponentByName(c.getConflictName());
+//            String s = openConflictWindow(manager.getStringsForConflict(c));
+//
+//            Blob b = (Blob) c.getOur().getDirectObject();
+//            Blob bb = (Blob) c.getTheir().getDirectObject();
+//            if (s == null) {
+//                com.setDirectObject(null);
+//            }
+//            if(s.equals(b.getContent()))
+//            {
+//                com.setDirectObject(c.getOur());
+//            }
+//            else if(s.equals((bb.getContent())))
+//            {
+//                com.setDirectObject(c.getTheir());
+//                //GitManager.createFile(com.getComponentName(),s,c.getPathInFolder(),new Date().getTime());
+//            }
+//            else
+//            {
+//                com.setDirectObject(new Blob(s));
+//                com.setSha1(GitManager.generateSHA1FromString(s));
+//                com.setLastUpdateDate(GitManager.getDateFromObject(null));
+//                com.setLastUpdater(manager.getUserName());
+//                //GitManager.createFile(com.getComponentName(),s,c.getPathInFolder(),new Date().getTime());
+//            }
+//        }
+//    }
+    @FXML
+    public String openConflictWindow(ArrayList<String> s) throws IOException {
+        FXMLLoader loader = new FXMLLoader();
 
-    // load main fxml
-    URL mainFXML = getClass().getResource("/Conflict.fxml");
-    loader.setLocation(mainFXML);
-    AnchorPane root1 = loader.load();
+        // load main fxml
+        URL mainFXML = getClass().getResource("/Conflict.fxml");
+        loader.setLocation(mainFXML);
+        AnchorPane root1 = loader.load();
 //    FXMLLoader loader = getClass().getResource("/Conflict.fxml");
-    ConflictController Con = loader.getController();
-    //Parent root1  = loader.load();
-    // load main fxml
+        ConflictController Con = loader.getController();
+        //Parent root1  = loader.load();
+        // load main fxml
 //    URL mainFXML = getClass().getResource("/Conflict.fxml");
-    //loader.setLocation(mainFXML);
-    //AnchorPane root = loader.load();
-Stage st = new Stage();
+        //loader.setLocation(mainFXML);
+        //AnchorPane root = loader.load();
+        Stage st = new Stage();
 
-    // wire up controller
+        // wire up controller
 
-    //ConflictController Con = loader.getController();
-    Con.FatherTextP.set(s.get(1));
-    Con.TheirTextP.set(s.get(2));
-    Con.OurTextP.set(s.get(3));
-    Con.setPrimaryStage(st);
-    Con.insertText.setEditable(true);
-    // set stage
-    st.setTitle(s.get(0));
-    Scene scene = new Scene(root1, 1050, 600);
-    Con.submit.setOnAction(event -> {
-        InputTextBox = Con.insertText.getText();
-        st.close();
-    });
-st.initStyle(StageStyle.DECORATED);
-    st.setScene(scene);
+        //ConflictController Con = loader.getController();
+        Con.FatherTextP.set(s.get(1));
+        Con.TheirTextP.set(s.get(2));
+        Con.OurTextP.set(s.get(3));
+        Con.setPrimaryStage(st);
+        //Con.insertText.setEditable(true);
+
+        // set stage
+        st.setTitle(s.get(0));
+        Scene scene = new Scene(root1, 1050, 600);
+        Con.submit.setOnAction(event -> {
+            InputTextBox = Con.insertText.getText();
+            st.close();
+        });
+        st.initStyle(StageStyle.DECORATED);
+        st.setScene(scene);
         st.showAndWait();
 //    InputTextBox =  Con.InsertTextP.getValue();
 //return  InputTextBox;
-   // return Con.InsertTextP.toString();
-return  InputTextBox;
-}
+        // return Con.InsertTextP.toString();
+        return InputTextBox;
+    }
 
     @FXML
 
@@ -832,7 +850,7 @@ return  InputTextBox;
         }
         // popUpTextBox("Please enter the name of the branch to delete");
         popUpChooseBox("Choose Branch For deletion");
-        if(InputTextBox==null) return;
+        if (InputTextBox == null) return;
         String branchName = InputTextBox;
         InputTextBox = null;
         if (manager.getGITRepository().getBranchByName(branchName) != null) {
@@ -848,18 +866,15 @@ return  InputTextBox;
     }
 
 
-
-
-
     @FXML
     public void CheckOutOnAction() {
         if (manager.getGITRepository() == null) {
             popUpMessage("There is no repository defined, cannot check out");
             return;
         }
-       // popUpTextBox("Please enter the name of the branch to move over to");
+        // popUpTextBox("Please enter the name of the branch to move over to");
         popUpChooseBox("Choose Branch For Checkout");
-        if(InputTextBox==null) return;
+        if (InputTextBox == null) return;
         String branchName = InputTextBox;
         InputTextBox = null;
 
@@ -869,14 +884,14 @@ return  InputTextBox;
                 if (manager.getDeletedFiles().size() != 0 ||
                         manager.getUpdatedFiles().size() != 0 ||
                         manager.getCreatedFiles().size() != 0) {
-                    popUpConfirmationBox("There are unsaved changes in the WC. would you like to save it before checkout?","Yes","No");
-                    if(InputTextBox==null) return;
+                    popUpConfirmationBox("There are unsaved changes in the WC. would you like to save it before checkout?", "Yes", "No");
+                    if (InputTextBox == null) return;
                     String toCommit = InputTextBox;
-                    InputTextBox=null;
+                    InputTextBox = null;
                     if (toCommit.toLowerCase().equals("1")) {
-                        try{
-                            manager.ExecuteCommit("commit before checkout to " +manager.getGITRepository().getHeadBranch() + "Branch", true);}
-                        catch(Exception er) {
+                        try {
+                            manager.ExecuteCommit("commit before checkout to " + manager.getGITRepository().getHeadBranch() + "Branch", true);
+                        } catch (Exception er) {
                             out.println("Unable to create zip file");
                         }
                     }
@@ -902,19 +917,23 @@ return  InputTextBox;
         }
         Commit newCommit;
         popUpTextBox("Please enter the SHA of commit for head Branch");
-        if(InputTextBox==null) return;
+        if (InputTextBox == null) return;
         String sha = InputTextBox;
-        InputTextBox=null;
+        InputTextBox = null;
 
         try {
             //לפני שיוצרת יכולה לבדוק אם כבר קיים במערכת לוגית
-            newCommit= manager.getCommitFromSha1UsingFiles(manager.getGITRepository().getRepositoryPath().toString(), sha);
-            newCommit.setSHA1(sha);}
-        catch (Exception e) {
+            newCommit = manager.getCommitFromSha1UsingFiles(manager.getGITRepository().getRepositoryPath().toString(), sha);
+            newCommit.setSHA1(sha);
+        } catch (Exception e) {
             out.println(e.getMessage());
-            return;}
-        try {newCommit.setRootFolder(manager.generateFolderFromCommitObject(newCommit.getRootFolderSHA1()));}
-        catch(Exception e) {out.println(e.getMessage());}
+            return;
+        }
+        try {
+            newCommit.setRootFolder(manager.generateFolderFromCommitObject(newCommit.getRootFolderSHA1()));
+        } catch (Exception e) {
+            out.println(e.getMessage());
+        }
 
         //checking if there are open changes in the WC
         try {
@@ -922,14 +941,14 @@ return  InputTextBox;
             if (manager.getDeletedFiles().size() != 0 ||
                     manager.getUpdatedFiles().size() != 0 ||
                     manager.getCreatedFiles().size() != 0) {
-                popUpConfirmationBox("There are unsaved changes in the WC. would you like to save it before checkout?","Yes","No");
-                if(InputTextBox==null) return;
+                popUpConfirmationBox("There are unsaved changes in the WC. would you like to save it before checkout?", "Yes", "No");
+                if (InputTextBox == null) return;
                 String toCommit = InputTextBox;
-                InputTextBox=null;
+                InputTextBox = null;
                 if (toCommit.toLowerCase().equals("1")) {
-                    try{
-                        manager.ExecuteCommit("commit before checkout to " +manager.getGITRepository().getHeadBranch() + "Branch", true);}
-                    catch(Exception er) {
+                    try {
+                        manager.ExecuteCommit("commit before checkout to " + manager.getGITRepository().getHeadBranch() + "Branch", true);
+                    } catch (Exception er) {
                         out.println("Unable to create zip file");
                     }
                 }
@@ -952,10 +971,9 @@ return  InputTextBox;
 //        catch (Exception err) {
 //            out.println(err.getMessage());
 //            return;}
-      //  ShowFilesOfCurrCommit();
+        //  ShowFilesOfCurrCommit();
 
     }
-
 
 
     public void popUpMessage(String toShow) {
@@ -1006,6 +1024,87 @@ return  InputTextBox;
     }
 
 
+    public void popUpConflictWindow() {
+        Label label = new Label("Conflicts List:");
+        // TextField newText = new TextField();
+        Button confirmButton = new Button("Solve");
+        //Button secondButton = new Button(option2);
+
+        Stage popUpWindow = new Stage();
+        popUpWindow.initModality(Modality.APPLICATION_MODAL);
+
+//        secondButton.setOnAction(event -> {
+//            InputTextBox = "2";
+//            popUpWindow.close();
+//        });
+
+        ListView list = new ListView();
+        list.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        Iterator entries = manager.conflictMap.entrySet().iterator();
+        while (entries.hasNext()) {
+            Map.Entry thisEntry = (Map.Entry) entries.next();
+            Conflict c = (Conflict) thisEntry.getKey();
+            list.getItems().add(c.getConflictName());
+        }
+        confirmButton.setOnAction(event -> {
+            InputTextBox = list.getSelectionModel().getSelectedItem().toString();
+            try {
+                String temp = InputTextBox;
+                InputTextBox = null;
+                popUpWindow.close();
+                solveConflicts(temp);
+                list.getItems().remove(temp);
+                if (list.getItems().size() != 0)
+                    popUpWindow.showAndWait();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            //popUpWindow.close();
+        });
+        confirmButton.setDefaultButton(true);
+        FlowPane root = new FlowPane();
+        root.setPadding(new Insets(10));
+        root.setHgap(10);
+
+        root.getChildren().addAll(label, list, confirmButton);
+
+        Scene scene = new Scene(root, 500, 500, Color.WHITE);
+        popUpWindow.setTitle("Select Conflict");
+        popUpWindow.setScene(scene);
+        popUpWindow.showAndWait();
+
+    }
+
+    @FXML
+    public void CloneRemoteRepositoryOnAction() {
+
+        String pathRemoteRep = getFolderWithChooser("Select a path for remote Repository");
+        if (pathRemoteRep != null) {
+
+            if (!Files.exists(Paths.get(pathRemoteRep + "\\" + ".magit"))) {//the path exist but not magit
+                popUpMessage("The wanted path is not a part of the magit system, please try again");
+            }
+            String pathNewRep = getFolderWithChooser("Select a path for New Repository");
+            if (pathNewRep != null) {
+
+                popUpMessage("Please insert the new Repository Name");
+                String repName = InputTextBox;
+                InputTextBox = null;
+                try {
+                    manager.CloneRepository(pathRemoteRep, pathNewRep, repName);
+                    RepositoryNameP.set(manager.getGITRepository().getRepositoryName());
+                    RepositoryPAthP.setValue(manager.getGITRepository().getRepositoryPath().toString());
+                    dynamicStatusContentP.set("Clone of Repository finished Successfully");
+                } catch (IllegalArgumentException e) {
+                    popUpMessage("was unable to generate folder from commit object");
+                    return;
+                } catch (Exception e) {
+                    popUpMessage("opening zip file failed");
+                    return;
+                }
+            }
+        }
+    }
 }
 
 //משימות

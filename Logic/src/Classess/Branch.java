@@ -12,19 +12,20 @@ public class Branch {
         private String branchName;
         private Commit pointedCommit;
         private  String pointedCommitSHA1="";
-
-        Boolean isTracking;
-        Boolean isRemote;
+        private Boolean isRemoteTrackingBranch;
+        private Boolean isRemoteBranch;
 
         //con
         Branch(String name)
         {
             branchName = name;
         }
-        Branch(String name, String commitSHA1)
+        Branch(String name, String commitSHA1,boolean isRemote,boolean isTracking)
         {
             branchName = name;
             pointedCommitSHA1 = commitSHA1;
+            isRemoteBranch = isRemote;
+            isRemoteTrackingBranch = isTracking;
         }
 
 

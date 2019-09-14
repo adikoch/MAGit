@@ -19,6 +19,16 @@ public class Repository {
        private Map<String, Commit> commitMap;
     private String repositoryName;
 
+    public void setRepositoryRemoteName(String repositoryRemoteName) {
+        this.repositoryRemoteName = repositoryRemoteName;
+    }
+
+    public String getRepositoryRemoteName() {
+        return repositoryRemoteName;
+    }
+
+    private String repositoryRemoteName;
+
 
     //String remoteReferenceName;
     //String referenceNameLocation;
@@ -98,8 +108,8 @@ public class Repository {
     }
 
 
-   void getRepositorysBranchesObjects() throws IOException {
-        Path BranchesPath = Paths.get(path.toString() + "\\.magit\\Branches");
+   void getRepositorysBranchesObjects(Path RepPath) {
+        Path BranchesPath = Paths.get(RepPath.toString() + "\\.magit\\Branches");
         File[] allBranches = BranchesPath.toFile().listFiles();
         String fileContent;
 
@@ -107,18 +117,33 @@ public class Repository {
             {
                 if(!f.getName().equals("Head")) {
                     fileContent = GitManager.readTextFile(f.toString());
-                    this.branches.add(new Branch(f.getName(), fileContent));
+                    this.branches.add(new Branch(f.getName(), fileContent,false,false));
                 }
             }
         }
+
+    }
+    void getRemoteRepositoryBranchesObjects(Path repRemotePath) {
+        Path BranchesPath = Paths.get(repRemotePath.toString() + "\\.magit\\Branches");
+        File[] allBranches = BranchesPath.toFile().listFiles();
+        String fileContent;
+
+        for (File f : allBranches) {
+            {
+                if(!f.getName().equals("Head")) {
+                    fileContent = GitManager.readTextFile(f.toString());
+                    this.branches.add(new Branch(this.repositoryName + "\\" + f.getName(), fileContent,true,false));
+                }
+            }
+        }
+
     }
     public void addCommitsToRepositoryMAp(Map<String, Commit> commitList)//add all commit to comitmap in repository
     {
-        Iterator entries = commitList.entrySet().iterator();
-        while (entries.hasNext()) {
-            Map.Entry thisEntry = (Map.Entry) entries.next();
-            Commit c = (Commit)thisEntry.getValue();
-            commitMap.put(c.getSHA(),c);
+        for (Map.Entry<String, Commit> stringCommitEntry : commitList.entrySet()) {
+            Map.Entry thisEntry = (Map.Entry) stringCommitEntry;
+            Commit c = (Commit) thisEntry.getValue();
+            commitMap.put(c.getSHA(), c);
         }
     }
     public CommitRepresentative sha1ToCommit(String sha1)

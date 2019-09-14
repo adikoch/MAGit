@@ -19,15 +19,15 @@ import java.util.ResourceBundle;
 
 public class ConflictController implements Initializable {
     @FXML
-    Label FatherText;
+    TextArea FatherText;
     @FXML
     Label father;
     @FXML
-    Label theirsText;
+    TextArea theirsText;
     @FXML
     Label theirs;
     @FXML
-    Label Ourstext;
+    TextArea Ourstext;
     @FXML
     Label Ours;
     @FXML
@@ -79,7 +79,7 @@ public MainController MC;
 //        primaryStage.setScene(scene);
 //        primaryStage.show();
 
-        InsertTextP = new SimpleStringProperty();
+        //InsertTextP = new SimpleStringProperty();
         OurTextP= new SimpleStringProperty();
         FatherTextP= new SimpleStringProperty();
         TheirTextP= new SimpleStringProperty();
@@ -92,7 +92,6 @@ public MainController MC;
         FatherText.textProperty().bind(FatherTextP);
        // insertText.textProperty().bind(InsertTextP);
         insertText.setEditable(true);
-
 
     }
 

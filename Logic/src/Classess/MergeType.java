@@ -1,6 +1,7 @@
 package Classess;
 
 
+import java.nio.file.Path;
 import java.util.Map;
 
 public enum MergeType {
@@ -15,7 +16,7 @@ public enum MergeType {
         situationString = name;
     }
 
-    Folder.Component decideFile(Map<Conflict,Folder> conflictMap, Folder.Component ourF, Folder.Component theirF,Folder.Component fatherF, Folder f) {
+    Folder.Component decideFile(Path path,Map<Conflict, Folder> conflictMap, Folder.Component ourF, Folder.Component theirF, Folder.Component fatherF, Folder f) {
         switch (this) {
             case A://001000
             case G://101010
@@ -30,7 +31,7 @@ public enum MergeType {
             case H://110000
             case J://111000
             {
-                Conflict con = new Conflict(ourF.getComponentName(),ourF,theirF,fatherF);
+                Conflict con = new Conflict(ourF.getComponentName(),ourF,theirF,fatherF,path);
                 conflictMap.put(con,f);
                 Folder.Component c = new Folder.Component(con.conflictName,null,FolderType.Blob,null,null);
 
