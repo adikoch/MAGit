@@ -1,13 +1,15 @@
 import Classess.*;
+import com.fxgraph.edges.Edge;
 import com.fxgraph.graph.Graph;
 import com.fxgraph.graph.ICell;
 import com.fxgraph.graph.Model;
 
 import Classess.GitManager;
 
-import generated.Item;
+import com.fxgraph.graph.PannableCanvas;
+import graph.CommitNode;
+import graph.CommitTreeLayout;
 import javafx.beans.property.SimpleObjectProperty;
-import generated.MagitRepository;
 import javafx.beans.property.SimpleStringProperty;
 
 import javafx.fxml.FXML;
@@ -17,11 +19,9 @@ import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.*;
 
@@ -90,7 +90,10 @@ public class MainController implements Initializable {
     TreeView<String> tree;
     @FXML
     Button merge;
-
+    @FXML
+    Button showGraph;
+    @FXML
+    Button Fetch;
     /*
      *
      * */
@@ -106,11 +109,15 @@ public class MainController implements Initializable {
 
     public String InputTextBox = null;
 
+    private Graph commitTreeG;
+
     public MainController() {
         RepositoryNameP = new SimpleStringProperty();
         RepositoryPAthP = new SimpleStringProperty();
         dynamicStatusContentP = new SimpleStringProperty();
 //        CommitTextP = new SimpleObjectProperty();
+        CommitTextP = new SimpleObjectProperty();
+        commitTreeG = new Graph();
     }
 
     @Override
@@ -478,6 +485,7 @@ public class MainController implements Initializable {
         popUpWindow.setScene(scene);
         popUpWindow.showAndWait();
 
+        InputTextBox = null;
     }
 
     //פונקציה שמייצרת חלון חדש עם תיבת טקסט בפנים עם הטקסט שהיא מקלבת וכשלוחצים לה ok מחזירה לי את הטקסט שכתבו שם בתוך המשתנה מחלקה יוזראינפוט
@@ -674,8 +682,8 @@ public class MainController implements Initializable {
 
         }
 
-            manager.CreatBranch(newBranchName);
-            dynamicStatusContentP.set("Creation of Branch finished Successfully");
+        manager.CreatBranch(newBranchName);
+        dynamicStatusContentP.set("Creation of Branch finished Successfully");
 
 
         //valid
@@ -957,7 +965,6 @@ public class MainController implements Initializable {
             //text file update:
             manager.updateFile(sha);
             manager.getGITRepository().getHeadBranch().setPointedCommit(newCommit);//////////////////
-//השורה הזו משום מה לא באמת משנה את הלוגיקה להצביע מתוך דיפ אל אל הקומיט החדש
 
             manager.executeCheckout(manager.getGITRepository().getHeadBranch().getBranchName());
             manager.getCreatedFiles().clear();
@@ -991,24 +998,23 @@ public class MainController implements Initializable {
         Label noRep = new Label(toShow);
         root.getChildren().addAll(noRep, gotItButton);
         Scene scene = new Scene(root);
-        //Scene scene = new Scene(root, 500, 400, Color.WHITE);
         popUpWindow.setScene(scene);
         popUpWindow.showAndWait();
     }
 
-    @FXML
-    public void ShowCommitsInfoOnAction() {
-        if (manager.getGITRepository() == null) {
-            popUpMessage("There is no repository defined, no files to show");
-            return;
-        }
-        try {
-            String s = manager.showFilesOfCommit();
-            popUpMessage(s);
-        } catch (Exception e) {
-            popUpMessage("Unable to generate folder from commit object");
-        }
-    }
+//    @FXML
+//    public void ShowCommitsInfoOnAction() {
+//        if (manager.getGITRepository() == null) {
+//            popUpMessage("There is no repository defined, no files to show");
+//            return;
+//        }
+//        try {
+//            String s = manager.showFilesOfCommit();
+//            popUpMessage(s);
+//        } catch (Exception e) {
+//            popUpMessage("Unable to generate folder from commit object");
+//        }
+//    }
 
 
     @FXML
@@ -1087,7 +1093,7 @@ public class MainController implements Initializable {
             String pathNewRep = getFolderWithChooser("Select a path for New Repository");
             if (pathNewRep != null) {
 
-                popUpMessage("Please insert the new Repository Name");
+                popUpTextBox("Please insert the new Repository Name");
                 String repName = InputTextBox;
                 InputTextBox = null;
                 try {
@@ -1105,9 +1111,166 @@ public class MainController implements Initializable {
             }
         }
     }
+
+
+    //Graph functions
+
+    @FXML
+    public void showGraph()//Graph commitTreeG) throws Exception//Stage primaryStage
+    {
+        if (manager.getGITRepository() == null) {
+            popUpMessage("There is no repository defined, no commits to show");
+            return;
+        }
+        Graph commitTreeG = new Graph();
+        final Model model = commitTreeG.getModel();
+        commitTreeG.beginUpdate();
+
+//בתוך הרפוזטורי בסוויצ רפוזטורי לעשות שהקומיטים של הרפוזטורי הנוכחית תמיד כולם במאפ, שחזור מהקבצים.
+
+        HashMap<String, ICell> mapOfNodes = new HashMap<>();
+        Iterator entries = manager.getGITRepository().getCommitMap().entrySet().iterator();
+        while (entries.hasNext()) {//פור על הקומיטים
+            Map.Entry thisEntry = (Map.Entry) entries.next();
+            Commit commit = (Commit) thisEntry.getValue();
+            ICell cell = new CommitNode(commit.getCreationDate(), commit.getChanger(), commit.getDescription());
+            model.addCell(cell);
+            mapOfNodes.put(commit.getSHA(), cell);//מקשר בין נוד לבין השאשל הקומיט שמצביע עליו
+        }
+
+        entries = manager.getGITRepository().getCommitMap().entrySet().iterator();
+        while (entries.hasNext()) {//פור על הקומיטים
+            Map.Entry thisEntry = (Map.Entry) entries.next();
+            Commit commit = (Commit) thisEntry.getValue();
+//            LinkedList<String> prevCommitsList=new LinkedList<String>();
+//            prevCommitsList.add(commit.getSHA1anotherPreveiousCommit());
+//            prevCommitsList.add(commit.getSHA1PreveiousCommit());
+            Commit prevCommit = manager.getGITRepository().getCommitMap().get(commit.getSHA1PreveiousCommit());
+            if (prevCommit != null) {//אג מהקומיט commit אל prevCommit
+                final Edge edge = new Edge(mapOfNodes.get(commit.getSHA()), mapOfNodes.get(prevCommit.getSHA()));
+                model.addEdge(edge);
+            }
+
+            Commit prevCommit2 = manager.getGITRepository().getCommitMap().get(commit.getSHA1anotherPreveiousCommit());
+            if (prevCommit2 != null) {
+                final Edge edge = new Edge(mapOfNodes.get(commit.getSHA()), mapOfNodes.get(prevCommit2.getSHA()));//(mapOfNodes.get(commit.getSHA(),mapOfNodes.get(prevCommit.getSHA()))//(commit,prevCommit);
+                model.addEdge(edge);
+            }
+            //לכל אחד מהפריב קומיט של commit אם לא נאל יוצרת קשת מהקומיט שמחוץ למקוננת אל הרומיט שבתוך המקוננת
+            //בתוך המקוננת היא ההורים שלו ומחוץ זה כל אחד מהקומיטים שקיימים
+            //כלומר קשת מהקומיט שלי אל ההורים
+        }
+
+
+        commitTreeG.endUpdate();
+        PannableCanvas canvas = commitTreeG.getCanvas();
+        CommitTree.setContent(canvas);
+        commitTreeG.layout(new CommitTreeLayout());
+
+    }
+
+    public void fetchOnAction() throws Exception {
+       manager.executeFetch();
+    }
+
+   /* @FXML
+    public void showGraph()//Graph commitTreeG) throws Exception//Stage primaryStage
+    {
+        if(manager.getGITRepository()==null)
+        {
+            popUpMessage("There is no repository defined, no commits to show");
+            return;
+        }
+        Graph commitTreeG = new Graph();
+        final Model model = commitTreeG.getModel();
+        commitTreeG.beginUpdate();
+
+//בתוך הרפוזטורי בסוויצ רפוזטורי לעשות שהקומיטים של הרפוזטורי הנוכחית תמיד כולם במאפ, שחזור מהקבצים.
+
+        //LinkedList<Commit> listOfCommits= turnMapToSortedList();
+
+        //
+
+        turnMapToSorted();
+
+        HashMap<String,ICell> mapOfNodes= new HashMap<>();
+
+        Iterator entries = manager.getGITRepository().getCommitMap().entrySet().iterator();
+        while (entries.hasNext()) {//פור על הקומיטים
+            Map.Entry thisEntry = (Map.Entry) entries.next();
+            Commit commit = (Commit) thisEntry.getValue();
+            ICell cell = new CommitNode(commit.getCreationDate(), commit.getChanger(), commit.getDescription());
+            model.addCell(cell);
+            mapOfNodes.put(commit.getSHA(),cell);//מקשר בין נוד לבין השאשל הקומיט שמצביע עליו
+        }
+
+        entries = manager.getGITRepository().getCommitMap().entrySet().iterator();
+        while (entries.hasNext()) {//פור על הקומיטים
+            Map.Entry thisEntry = (Map.Entry) entries.next();
+            Commit commit = (Commit) thisEntry.getValue();
+//            LinkedList<String> prevCommitsList=new LinkedList<String>();
+//            prevCommitsList.add(commit.getSHA1anotherPreveiousCommit());
+//            prevCommitsList.add(commit.getSHA1PreveiousCommit());
+            Commit prevCommit= manager.getGITRepository().getCommitMap().get(commit.getSHA1PreveiousCommit());
+            if(prevCommit!=null)
+            {//אג מהקומיט commit אל prevCommit
+                final Edge edge = new Edge(mapOfNodes.get(commit.getSHA()),mapOfNodes.get(prevCommit.getSHA()));
+                model.addEdge(edge);
+            }
+
+            Commit prevCommit2= manager.getGITRepository().getCommitMap().get(commit.getSHA1anotherPreveiousCommit());
+            if(prevCommit2!=null)
+            {
+                final Edge edge = new Edge(mapOfNodes.get(commit.getSHA()),mapOfNodes.get(prevCommit2.getSHA()));//(mapOfNodes.get(commit.getSHA(),mapOfNodes.get(prevCommit.getSHA()))//(commit,prevCommit);
+                model.addEdge(edge);
+            }
+            //לכל אחד מהפריב קומיט של commit אם לא נאל יוצרת קשת מהקומיט שמחוץ למקוננת אל הרומיט שבתוך המקוננת
+            //בתוך המקוננת היא ההורים שלו ומחוץ זה כל אחד מהקומיטים שקיימים
+            //כלומר קשת מהקומיט שלי אל ההורים
+        }
+
+
+        commitTreeG.endUpdate();
+        PannableCanvas canvas = commitTreeG.getCanvas();
+        CommitTree.setContent(canvas);
+        commitTreeG.layout(new CommitTreeLayout());
+
+    }
+
+    public void turnMapToSorted()
+    {
+        LinkedList<Commit> sortedList= turnMapToSortedList();//inserting the map into a list, sort it
+        manager.getGITRepository().getCommitMap().clear();//clearing the map
+        for(int i=1;i<=sortedList.size();i++)//in a descending order inserting back to map
+        {
+            manager.getGITRepository().getCommitMap().put(sortedList.getLast().getSHA(),sortedList.getLast());
+        }
+    }
+
+    LinkedList<Commit> turnMapToSortedList()
+    {
+        LinkedList<Commit> list= new LinkedList<>();
+
+        Iterator entries = manager.getGITRepository().getCommitMap().entrySet().iterator();
+        while (entries.hasNext()) {//פור על הקומיטים
+            Map.Entry thisEntry = (Map.Entry) entries.next();
+            Commit commit = (Commit) thisEntry.getValue();
+            list.add(commit);
+        }
+        list.sort(new Comperator());//לא יודעת איך עושים את הקומפרטור
+        return list;
+    }
+
+    //קומפרטור להשוואה למיון של הקומיטים לפי תאריך
+    class Comperator implements Comparator<Commit>
+    {
+        // Used for sorting in ascending order of
+        // roll name
+        public int compare(Commit a, Commit b)
+        {
+            return a.getCreationDate().compareTo(b.getCreationDate());//1 אם גדול 0 אם שווה מינוס אם קטן
+        }
+    }*/
 }
 
-//משימות
-//לעשות שאנטר ילחץ על הכפתור של אוקיי
-//לסדר את התצוגה של הקבצים בתיקייה
-//
+

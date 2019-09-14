@@ -27,7 +27,17 @@ public class Repository {
         return repositoryRemoteName;
     }
 
-    private String repositoryRemoteName;
+    public String getRepositoryRemotePath() {
+        return repositoryRemotePath;
+    }
+
+    public void setRepositoryRemotePath(String repositoryRemotePath) {
+        this.repositoryRemotePath = repositoryRemotePath;
+    }
+
+    private String repositoryRemotePath = null;
+
+    private String repositoryRemoteName = null;
 
 
     //String remoteReferenceName;
@@ -123,6 +133,7 @@ public class Repository {
         }
 
     }
+
     void getRemoteRepositoryBranchesObjects(Path repRemotePath) {
         Path BranchesPath = Paths.get(repRemotePath.toString() + "\\.magit\\Branches");
         File[] allBranches = BranchesPath.toFile().listFiles();
@@ -132,7 +143,7 @@ public class Repository {
             {
                 if(!f.getName().equals("Head")) {
                     fileContent = GitManager.readTextFile(f.toString());
-                    this.branches.add(new Branch(this.repositoryName + "\\" + f.getName(), fileContent,true,false));
+                    this.branches.add(new Branch(this.repositoryRemoteName + "\\" + f.getName(), fileContent,true,false));
                 }
             }
         }
@@ -151,6 +162,36 @@ public class Repository {
         return commitMap.get(sha1);
     }
 
+   public void addNewBranchesToLRInRep(Path RepPath) throws Exception {
+        Path BranchesPath = Paths.get(RepPath.toString() + "\\.magit\\Branches");
+        File[] allBranches = BranchesPath.toFile().listFiles();
+        String fileContent;
+        String fileContent2;
+String intro =  RepPath.toString() + "\\";
+       for (File f : allBranches) {
+            {
+                if(!f.getName().equals("Head")) {
+                    if (this.getBranchByName(intro + f.getName()) == null) {
+                        fileContent = GitManager.readTextFile(f.toString());
+                        Branch b = new Branch(f.getName(), fileContent, true, false);
+                        GitManager.createFileInMagit(b,this.getRepositoryPath());
+                        this.branches.add(b);
+                    }
+                    else
+                    {
+                        fileContent = GitManager.readTextFile(f.toString());
+                        Branch b = this.getBranchByName(intro + f.getName());
+                        if(!fileContent.equals(getBranchByName(b.getPointedCommitSHA1())))
+                        {
+                            b.setPointedCommitSHA1(fileContent);
+                            b.setPointedCommit(this.getCommitList().get(fileContent));
+                        }
+                    }
+                }
+            }
+        }
+
+    }
 }
 
 

@@ -20,13 +20,7 @@ public class Commit implements CommitRepresentative {
     private String SHA1PreveiousCommit;
     private String SHA1anotherPreveiousCommit;
     private String description;
-
-
-
     private String creationDate;
-
-
-
     private String changer;
     private String SHAContent;
 

@@ -3,9 +3,11 @@ package Classess;
 import com.sun.xml.internal.ws.api.Component;
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import generated.*;
+
+import org.apache.commons.io.FileUtils;
 import puk.team.course.magit.ancestor.finder.AncestorFinder;
 import puk.team.course.magit.ancestor.finder.CommitRepresentative;
-//import puk.team.course.magit.ancestor.finder.AncestorFinder;
+import puk.team.course.magit.ancestor.finder.AncestorFinder;
 
 
 import javax.xml.bind.*;
@@ -365,34 +367,51 @@ public class GitManager {
         GITRepository.setHeadBranch(GITRepository.getBranchByName(content));
 
 
-        getCommitForBranches(newRepPath);
+        getCommitForBranches();
 
 
     }
+
     public void CloneRepository(String pathRemoteRep,String pathNewRep,String repName) throws Exception {
         File f = Paths.get(pathRemoteRep + "\\.magit\\branches\\Head").toFile();//הקובץ הד
-        String content = readTextFile(pathRemoteRep + "\\.magit\\branches\\" + f.getName());
+        String headBranch = readTextFile(pathRemoteRep + "\\.magit\\branches\\" + f.getName());
         this.GITRepository = new Repository(Paths.get(pathNewRep));
 
         //repnames
         File remoteRepName = Paths.get(pathRemoteRep + "\\.magit\\RepName").toFile();
-        String remoteName = readTextFile(pathRemoteRep + "\\.magit\\branches\\" + remoteRepName.getName());
+        String remoteName = readTextFile(pathRemoteRep + "\\.magit\\" + remoteRepName.getName());
         GITRepository.setRepositoryRemoteName(remoteName);
         GITRepository.setRepositoryName(repName);
-
+GITRepository.setRepositoryRemotePath(pathRemoteRep);
         //ctreate logic
         this.GITRepository.getRemoteRepositoryBranchesObjects(Paths.get(pathRemoteRep));
-        GITRepository.setHeadBranch(new Branch(content,GITRepository.getBranchByName(content).getPointedCommitSHA1(),false,true));
-        getCommitForBranches(Paths.get(pathRemoteRep));
+        String s =   remoteName + "\\";
+        GITRepository.setHeadBranch(new Branch(headBranch,GITRepository.getBranchByName(s + headBranch).getPointedCommitSHA1(),false,true));
+        copyObjectsFiles(pathRemoteRep,pathNewRep);
+        getCommitForBranches();
 
 
         //WC
-        createMagitFiles();
+        createMagitFiles(false);
+
         createFilesInWCFromCommitObject(GITRepository.getHeadBranch().getPointedCommit().getRootFolder(), GITRepository.getRepositoryPath());
         createFile("RepName", GITRepository.getRepositoryName(), Paths.get(GITRepository.getRepositoryPath() + "\\.magit"), new Date().getTime());
         createFile("RemoteRepName", GITRepository.getRepositoryRemoteName(), Paths.get(GITRepository.getRepositoryPath() + "\\.magit"), new Date().getTime());
 
     }
+public void copyObjectsFiles(String pathRemoteRep,String pathNewRep)
+{
+    String BString = "\\.magit\\Objects\\";
+    File RemoteRep = new File(pathRemoteRep + BString);
+
+    File NewRep = new File(pathNewRep + BString);
+
+    try {
+        FileUtils.copyDirectory(RemoteRep, NewRep);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
 
 
     public boolean doesPathExist(String path) {
@@ -425,44 +444,108 @@ public class GitManager {
     }
      */
 
-    public void getCommitForBranches(Path newRepPath) throws IOException, IllegalArgumentException { //V
+    public void getCommitForBranches() throws IOException, IllegalArgumentException { //V
         Folder folder = null;
-        String commitContent = null;
         for (Branch b : GITRepository.getBranches()) {
-            Path commitPath = Paths.get(newRepPath + "\\.magit\\objects\\" + b.getPointedCommitSHA1() + ".zip");
-            try {
-                commitContent = extractZipFile(commitPath);
-            } catch (IOException e) {
-                throw new IOException();
-            }// opening zip file failed
-            BufferedReader br = new BufferedReader(new StringReader(commitContent));
-            ArrayList<String> st = new ArrayList<>();
-            String a;
-            int i = 0;
-            while ((a = br.readLine()) != null) {
-                if (a.equals("null")) {
-                    st.add(i, null);
-                } else {
-                    st.add(i, a);
-                }
-                i++;
-            }
-            Commit newCommit = new Commit(st);
-
+            //try{
+            Commit newCommit =createCommitRec(b.getPointedCommitSHA1());
+            newCommit.setCommitFileContentToSHA();
+            getGITRepository().getCommitMap().put(newCommit.getSHA(),newCommit);
             b.setPointedCommit(newCommit);
+
+            //}
+            //catch(IOException e){}
+//
+//            Path commitPath = Paths.get(getGITRepository().getRepositoryPath().toString() + "\\.magit\\objects\\" + b.getPointedCommitSHA1() + ".zip");
+//            try {
+//
+//                commitContent = extractZipFile(commitPath);//5 השורות
+//            } catch (IOException e) {
+//                throw new IOException();
+//            }// opening zip file failed
+//            BufferedReader br = new BufferedReader(new StringReader(commitContent));
+//            ArrayList<String> st = new ArrayList<>();
+//            String a;
+//            int i = 0;
+//            while ((a = br.readLine()) != null) {
+//                if (a.equals("null")) {
+//                    st.add(i, null);
+//                } else {
+//                    st.add(i, a);
+//                }
+//                i++;
+//            }
+//            Commit newCommit = new Commit(st);//--זה יקרה כבר בתוך הרקורסיה של לבנות את המפת קומיטים השלמה
+////כאן
+
             //GITRepository.getRepositoryName() = ךהחליף שם של רפוסיטורי
             //לא יצרנו קומיט שההד יצביע עליו כי אין צורך
+//            try {
+//                folder = generateFolderFromCommitObject(newCommit.getRootFolderSHA1());
+//            } catch (IOException er) {
+//                throw new IllegalArgumentException();
+//            }// was unable to generateFolderFromCommitObject
+//            b.getPointedCommit().setRootFolder(folder);
+            //newCommit.setCommitFileContentToSHA();
+            //br.close();
+            //GITRepository.getCommitList().put(newCommit.getSHA(), newCommit);
+            //מיותר כבר הוספנו למעלה
+        }
+    }
+
+    public Commit createCommitRec(String sha1) throws IOException
+    {
+        String commitContent;
+        Path commitPath = Paths.get(getGITRepository().getRepositoryPath().toString() + "\\.magit\\objects\\" + sha1 + ".zip");
+        try {
+            commitContent = extractZipFile(commitPath);//5 השורות
+        } catch (IOException e) {
+            throw new IOException();
+        }// opening zip file failed
+        BufferedReader br = new BufferedReader(new StringReader(commitContent));
+        ArrayList<String> st = new ArrayList<>();
+        String a;
+        int i = 0;
+        while ((a = br.readLine()) != null) {
+            if (a.equals("null")) {
+                st.add(i, null);
+            } else {
+                st.add(i, a);
+            }
+            i++;
+        }
+        br.close();
+
+        Commit newCommit = new Commit(st);
+        newCommit.setSHA1(sha1);
+
+        //הוספה של הקומיט למאפ אם לא קיים:
+        if(getGITRepository().getCommitMap().get(newCommit.getSHA())==null)
+        {
+            getGITRepository().getCommitMap().put(newCommit.getSHA(),newCommit);
+        }
+
+        //קריאות רקורסיביות:
+
             try {
-                folder = generateFolderFromCommitObject(newCommit.getRootFolderSHA1());
+                newCommit.setRootFolder(generateFolderFromCommitObject(newCommit.getRootFolderSHA1()));
             } catch (IOException er) {
                 throw new IllegalArgumentException();
             }// was unable to generateFolderFromCommitObject
-            b.getPointedCommit().setRootFolder(folder);
-            newCommit.setCommitFileContentToSHA();
-            br.close();
-            GITRepository.getCommitList().put(newCommit.getSHA(), newCommit);
+        if(newCommit.getSHA1PreveiousCommit()!=null)//father #1
+        {
+            createCommitRec(newCommit.getSHA1PreveiousCommit());
         }
+
+        if(newCommit.getSHA1anotherPreveiousCommit()!=null)//father #2
+        {
+           createCommitRec(newCommit.getSHA1anotherPreveiousCommit());
+        }
+
+        return newCommit;
+
     }
+
 
 
     public Folder generateFolderFromCommitObject(String rootFolderName) throws IOException {//V
@@ -494,7 +577,7 @@ public class GitManager {
     }
 
 
-    private static void createFileInMagit(Object obj, Path path) throws Exception {//V
+    public static void createFileInMagit(Object obj, Path path) throws Exception {//V
         Path magitPath = Paths.get(path.toString() + "\\.magit");
         Path objectsPath = Paths.get(magitPath.toString() + "\\objects");
         Path branchesPath = Paths.get(magitPath.toString() + "\\branches");
@@ -706,6 +789,20 @@ public class GitManager {
         return returnedDate;
     }
 
+    public static Date getDateObjectFromString(String date) throws Exception {
+        Date returnedDate;
+//        Date date1=new SimpleDateFormat("dd.MM.YYYY - hh:mm:ss:sss").parse(date);//////////////ענביתתתתתתת
+//        return date1;
+//long fj = date.to
+        DateFormat sdf = new SimpleDateFormat("dd.MM.yyyy-HH:mm:ss:SSS");
+        try {
+            returnedDate = sdf.parse(date);
+        } catch (ParseException e) {
+            throw new Exception("Invalid date structure");
+        }
+        return returnedDate;
+    }
+
     @Override
     public String toString() {
         String separator = System.lineSeparator() + "*" + System.lineSeparator();
@@ -858,16 +955,19 @@ public class GitManager {
             }
             GITRepository = new Repository(Paths.get(oldRepository.getLocation()));
             convertOldRepoToNew(oldRepository);
+            GITRepository.setRepositoryRemoteName(oldRepository.getMagitRemoteReference().getName());
 
             if (Files.exists(Paths.get(oldRepository.getLocation())))//כבר קיים רפוזטורי כזה בעל אותו השם באותו המקום
             {
                 throw new IOException(oldRepository.getLocation());//go ask question, with the location, c:\repo1
             }
         }
-        createMagitFiles();
+        createMagitFiles(true);
         createFilesInWCFromCommitObject(GITRepository.getHeadBranch().getPointedCommit().getRootFolder(), GITRepository.getRepositoryPath());
         createFile("RepName", GITRepository.getRepositoryName(), Paths.get(GITRepository.getRepositoryPath() + "\\.magit"), new Date().getTime());
+        if(GITRepository.getRepositoryRemoteName() != null)
         createFile("RemoteRepName", GITRepository.getRepositoryRemoteName(), Paths.get(GITRepository.getRepositoryPath() + "\\.magit"), new Date().getTime());
+
 
         this.userName = GITRepository.getHeadBranch().getPointedCommit().getChanger();
         this.blobTempMap.clear();
@@ -979,24 +1079,28 @@ public class GitManager {
     }
 
 
-    public void createMagitFiles() throws Exception { //V
+    public void createMagitFiles(boolean isCreateObjects) throws Exception { //V
         new File(GITRepository.getRepositoryPath() + "\\.magit\\objects").mkdirs();
         new File(GITRepository.getRepositoryPath() + "\\.magit\\branches").mkdirs();
 
         try {
             createBranchesFiles();
         } catch (Exception e) {
-            throw new Exception("Could not creat branches folder");
+            throw new Exception("Could not create branches folder");
         }
-        try {
-            createObjectFiles();
-        } catch (Exception e) {
-            throw new Exception("Could not creat objects folder");
+        if(isCreateObjects) {
+            try {
+                createObjectFiles();
+            } catch (Exception e) {
+                throw new Exception("Could not create objects folder");
+            }
         }
     }
 
     public void createBranchesFiles() throws Exception {//V
         Path BranchesPath = Paths.get(GITRepository.getRepositoryPath().toString() + "\\.magit\\Branches");
+        if(GITRepository.getRepositoryRemoteName() != null)
+            new File(GITRepository.getRepositoryPath() + "\\.magit\\Branches\\" + GITRepository.getRepositoryRemoteName()).mkdirs();
         for (Branch b : GITRepository.getBranches()) {
             createFileInMagit(b, GITRepository.getRepositoryPath());
         }
@@ -1421,6 +1525,32 @@ public class GitManager {
         }
 
     }
+
+    public void executeFetch() throws Exception {
+        updatedBranchesToLR();
+        addNewObjects();
+
+    }
+    public void updatedBranchesToLR() throws Exception {
+        getGITRepository().addNewBranchesToLRInRep(Paths.get(GITRepository.getRepositoryRemotePath()));
+    }
+    public void addNewObjects() {
+        File local = new File(getGITRepository().getRepositoryPath().toString() + "\\.magit\\Objects");
+        File remote = new File(getGITRepository().getRepositoryRemotePath()+ "\\.magit\\Objects");
+
+        mergeTwoDirectories(local, remote);
+
+    }
+
+    public static void mergeTwoDirectories(File local, File remote) {
+        String targetDirPath = local.getAbsolutePath();
+        File[] files = remote.listFiles();
+        for (File file : files) {
+            file.renameTo(new File(targetDirPath + "\\" + file.getName()));
+        }
+    }
+
+
 }
 
 
