@@ -55,9 +55,15 @@
                 </MenuBar>
                 <ToolBar prefHeight="40.0" prefWidth="200.0">
                     <items>
+<<<<<<< HEAD:FX/src/MainFolder/Newmain.fxml
                         <Button mnemonicParsing="false" text="Push" />
                         <Button mnemonicParsing="false" text="Pull" />
                         <Button fx:id="Fetch" mnemonicParsing="false" text="Fetch" />
+=======
+                        <Button fx:id="Push" mnemonicParsing="false" onAction="#pushOnAction" text="Push" />
+                        <Button fx:id="Pull" mnemonicParsing="false" onAction="#pullOnAction" text="Pull" />
+                        <Button fx:id="Fetch" mnemonicParsing="false" onAction="#fetchOnAction" text="Fetch" />
+>>>>>>> dff2e690c740c6c6a6640081cd26a0b11b694dca:FX/src/Newmain.fxml
                         <Button fx:id="merge" mnemonicParsing="false" onAction="#mergeTwoBranchesOnAction" text="Merge" />
                         <SplitMenuButton mnemonicParsing="false" text="Commit">
                             <items>

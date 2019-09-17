@@ -13,6 +13,14 @@ public class Branch {
         private Commit pointedCommit;
         private  String pointedCommitSHA1="";
 
+    public Boolean getRemoteTrackingBranch() {
+        return isRemoteTrackingBranch;
+    }
+
+    public Boolean getRemoteBranch() {
+        return isRemoteBranch;
+    }
+
     public void setRemoteTrackingBranch(Boolean remoteTrackingBranch) {
         isRemoteTrackingBranch = remoteTrackingBranch;
     }

@@ -16,12 +16,14 @@ public class Main extends Application {
 
         FXMLLoader loader = new FXMLLoader();
 
+
         // load main fxml
         //URL mainFXML = getClass().getResource("/MainFolder/Newmain.fxml");//????????
         //URL mainFXML = getClass().getResource("/");
-        URL mainFXML = getClass().getResource("/MainFolder/Newmain.fxml");//????????
+//        URL mainFXML = getClass().getResource("/MainFolder/Newmain.fxml");//????????
 
 
+        URL mainFXML = getClass().getResource("/MainFolder/Newmain.fxml");
         loader.setLocation(mainFXML);
         AnchorPane root = loader.load();
 

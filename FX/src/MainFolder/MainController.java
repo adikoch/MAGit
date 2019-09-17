@@ -94,6 +94,11 @@ public class MainController implements Initializable {
     Button showGraph;
     @FXML
     Button Fetch;
+    @FXML
+    Button Pull;
+    @FXML
+    Button Push;
+
     /*
      *
      * */
@@ -223,7 +228,6 @@ public class MainController implements Initializable {
         popUpWindow.close();
 
     }
-
 
 
 //    @FXML
@@ -379,7 +383,6 @@ public class MainController implements Initializable {
         else
             return null;
     }
-
 
 
     @FXML
@@ -612,7 +615,7 @@ public class MainController implements Initializable {
                     manager.switchRepository(Paths.get(pathString));
                     RepositoryNameP.set(manager.getGITRepository().getRepositoryName());
                     RepositoryPAthP.setValue(manager.getGITRepository().getRepositoryPath().toString());
-                    dynamicStatusContentP.set("Import of Repository finished Successfully");
+                    dynamicStatusContentP.set("Switch to Repository finished Successfully");
 
                 } catch (IOException e) {
                     popUpMessage("opening zip file failed");
@@ -628,7 +631,7 @@ public class MainController implements Initializable {
                 manager.getGITRepository().getRepositoryName();
                 RepositoryNameP.set(manager.getGITRepository().getRepositoryName());
                 RepositoryPAthP.setValue(manager.getGITRepository().getRepositoryPath().toString());
-                dynamicStatusContentP.set("Import of Repository finished Successfully");
+                dynamicStatusContentP.set("Switch to Repository finished Successfully");
 
             } catch (IOException e) {
                 popUpMessage("opening zip file failed");
@@ -989,8 +992,6 @@ public class MainController implements Initializable {
     }
 
 
-
-
     public void popUpMessage(String toShow) {
         Stage popUpWindow = new Stage();
 
@@ -1142,9 +1143,10 @@ public class MainController implements Initializable {
             Map.Entry thisEntry = (Map.Entry) entries.next();
             Commit commit = (Commit) thisEntry.getValue();
             //ICell cell = new CommitNode(commit.getCreationDate(), commit.getChanger(), commit.getDescription());
-            ICell cell = new CommitNode(commit,this);
+            ICell cell = new CommitNode(commit, this);
+//            ICell cell = new CommitNode(commit.getCreationDate(), commit.getChanger(), commit.getDescription());
             model.addCell(cell);
-            mapOfNodes.put(commit.getSHA(),cell);//מקשר בין נוד לבין השאשל הקומיט שמצביע עליו
+            mapOfNodes.put(commit.getSHA(), cell);//מקשר בין נוד לבין השאשל הקומיט שמצביע עליו
         }
 
         entries = manager.getGITRepository().getCommitMap().entrySet().iterator();
@@ -1154,17 +1156,15 @@ public class MainController implements Initializable {
 //            LinkedList<String> prevCommitsList=new LinkedList<String>();
 //            prevCommitsList.add(commit.getSHA1anotherPreveiousCommit());
 //            prevCommitsList.add(commit.getSHA1PreveiousCommit());
-            Commit prevCommit= manager.getGITRepository().getCommitMap().get(commit.getSHA1PreveiousCommit());
-            if(prevCommit!=null)
-            {//אג מהקומיט commit אל prevCommit
-                final Edge edge = new Edge(mapOfNodes.get(commit.getSHA()),mapOfNodes.get(prevCommit.getSHA()));
+            Commit prevCommit = manager.getGITRepository().getCommitMap().get(commit.getSHA1PreveiousCommit());
+            if (prevCommit != null) {//אג מהקומיט commit אל prevCommit
+                final Edge edge = new Edge(mapOfNodes.get(commit.getSHA()), mapOfNodes.get(prevCommit.getSHA()));
                 model.addEdge(edge);
             }
 
-            Commit prevCommit2= manager.getGITRepository().getCommitMap().get(commit.getSHA1anotherPreveiousCommit());
-            if(prevCommit2!=null)
-            {
-                final Edge edge = new Edge(mapOfNodes.get(commit.getSHA()),mapOfNodes.get(prevCommit2.getSHA()));//(mapOfNodes.get(commit.getSHA(),mapOfNodes.get(prevCommit.getSHA()))//(commit,prevCommit);
+            Commit prevCommit2 = manager.getGITRepository().getCommitMap().get(commit.getSHA1anotherPreveiousCommit());
+            if (prevCommit2 != null) {
+                final Edge edge = new Edge(mapOfNodes.get(commit.getSHA()), mapOfNodes.get(prevCommit2.getSHA()));//(mapOfNodes.get(commit.getSHA(),mapOfNodes.get(prevCommit.getSHA()))//(commit,prevCommit);
                 model.addEdge(edge);
             }
             //לכל אחד מהפריב קומיט של commit אם לא נאל יוצרת קשת מהקומיט שמחוץ למקוננת אל הרומיט שבתוך המקוננת
@@ -1179,6 +1179,140 @@ public class MainController implements Initializable {
         commitTreeG.layout(new CommitTreeLayout());
 
     }
+
+    public void fetchOnAction() throws Exception {
+        manager.executeFetch();
+    }
+
+    public void pullOnAction() throws Exception {
+
+        if (manager.getGITRepository().getHeadBranch().getRemoteTrackingBranch().equals(true)) {
+
+            manager.ExecuteCommit("", false);
+            if (manager.getDeletedFiles().size() != 0 ||
+                    manager.getUpdatedFiles().size() != 0 ||
+                    manager.getCreatedFiles().size() != 0) {
+                popUpConfirmationBox("There are unsaved changes in the WC. would you like to save it before checkout?", "Yes", "No");
+                if (InputTextBox == null) return;
+                String toCommit = InputTextBox;
+                InputTextBox = null;
+                if (toCommit.toLowerCase().equals("1")) {
+                    try {
+                        manager.ExecuteCommit("commit before checkout to " + manager.getGITRepository().getHeadBranch() + "Branch", true);
+                    } catch (Exception er) {
+                        out.println("Unable to create zip file");
+                    }
+                } else {
+                    return;
+                }
+            }
+            manager.executePull();
+            manager.getCreatedFiles().clear();
+            manager.getDeletedFiles().clear();
+            manager.getUpdatedFiles().clear();
+        } else
+            popUpMessage("The Head Branch is not a Temote Tracking Branch!");
+    }
+
+
+    public void pushOnAction() throws Exception {
+
+        if (manager.getGITRepository().getHeadBranch().getRemoteTrackingBranch().equals(true)) {
+            String intro = manager.getGITRepository().getRepositoryRemotePath() + "\\";
+
+            Folder newFolder = manager.GenerateFolderFromWC(Paths.get(manager.getGITRepository().getRepositoryRemotePath()));// ייצג את הספרייה הראשית
+            Folder oldFolder = manager.getGITRepository().getBranchByName(intro + manager.getGITRepository().getHeadBranch()
+                    .getBranchName()).getPointedCommit().getRootFolder();
+            manager.createShaAndZipForNewCommit(newFolder, oldFolder, false, manager.getGITRepository().getRepositoryPath());
+            if (manager.getDeletedFiles().size() != 0 ||
+                    manager.getUpdatedFiles().size() != 0 ||
+                    manager.getCreatedFiles().size() != 0) {
+                popUpConfirmationBox("There are unsaved changes in the WC. would you like to save it before checkout?", "Yes", "No");
+                if (InputTextBox == null) return;
+                String toCommit = InputTextBox;
+                InputTextBox = null;
+                if (toCommit.toLowerCase().equals("1")) {
+                    try {
+                        manager.ExecuteCommit("commit before checkout to " + manager.getGITRepository().getHeadBranch() + "Branch", true);
+                    } catch (Exception er) {
+                        out.println("Unable to create zip file");
+                    }
+                } else {
+                    return;
+                }
+            }
+            manager.executePush();
+            manager.getCreatedFiles().clear();
+            manager.getDeletedFiles().clear();
+            manager.getUpdatedFiles().clear();
+
+        } else
+            popUpMessage("The Head Branch is not a Temote Tracking Branch!");
+    }
+
+//    @FXML
+//    public void showGraph()//Graph commitTreeG) throws Exception//Stage primaryStage
+//    {
+//        if(manager.getGITRepository()==null)
+//        {
+//            popUpMessage("There is no repository defined, no commits to show");
+//            return;
+//        }
+//        Graph commitTreeG = new Graph();
+//        final Model model = commitTreeG.getModel();
+//        commitTreeG.beginUpdate();
+//
+////בתוך הרפוזטורי בסוויצ רפוזטורי לעשות שהקומיטים של הרפוזטורי הנוכחית תמיד כולם במאפ, שחזור מהקבצים.
+//
+//        //LinkedList<Commit> listOfCommits= turnMapToSortedList();
+//
+//        //
+//
+//        turnMapToSorted();
+//
+//        HashMap<String,ICell> mapOfNodes= new HashMap<>();
+//
+//        Iterator entries = manager.getGITRepository().getCommitMap().entrySet().iterator();
+//        while (entries.hasNext()) {//פור על הקומיטים
+//            Map.Entry thisEntry = (Map.Entry) entries.next();
+//            Commit commit = (Commit) thisEntry.getValue();
+//            ICell cell = new CommitNode(commit.getCreationDate(), commit.getChanger(), commit.getDescription());
+//            model.addCell(cell);
+//            mapOfNodes.put(commit.getSHA(),cell);//מקשר בין נוד לבין השאשל הקומיט שמצביע עליו
+//        }
+//
+//        entries = manager.getGITRepository().getCommitMap().entrySet().iterator();
+//        while (entries.hasNext()) {//פור על הקומיטים
+//            Map.Entry thisEntry = (Map.Entry) entries.next();
+//            Commit commit = (Commit) thisEntry.getValue();
+////            LinkedList<String> prevCommitsList=new LinkedList<String>();
+////            prevCommitsList.add(commit.getSHA1anotherPreveiousCommit());
+////            prevCommitsList.add(commit.getSHA1PreveiousCommit());
+//            Commit prevCommit= manager.getGITRepository().getCommitMap().get(commit.getSHA1PreveiousCommit());
+//            if(prevCommit!=null)
+//            {//אג מהקומיט commit אל prevCommit
+//                final Edge edge = new Edge(mapOfNodes.get(commit.getSHA()),mapOfNodes.get(prevCommit.getSHA()));
+//                model.addEdge(edge);
+//            }
+//
+//            Commit prevCommit2= manager.getGITRepository().getCommitMap().get(commit.getSHA1anotherPreveiousCommit());
+//            if(prevCommit2!=null)
+//            {
+//                final Edge edge = new Edge(mapOfNodes.get(commit.getSHA()),mapOfNodes.get(prevCommit2.getSHA()));//(mapOfNodes.get(commit.getSHA(),mapOfNodes.get(prevCommit.getSHA()))//(commit,prevCommit);
+//                model.addEdge(edge);
+//            }
+//            //לכל אחד מהפריב קומיט של commit אם לא נאל יוצרת קשת מהקומיט שמחוץ למקוננת אל הרומיט שבתוך המקוננת
+//            //בתוך המקוננת היא ההורים שלו ומחוץ זה כל אחד מהקומיטים שקיימים
+//            //כלומר קשת מהקומיט שלי אל ההורים
+//        }
+//
+//
+//        commitTreeG.endUpdate();
+//        PannableCanvas canvas = commitTreeG.getCanvas();
+//        CommitTree.setContent(canvas);
+//        commitTreeG.layout(new CommitTreeLayout());
+//
+//    }
 
 //    @FXML
 //    public void showGraph()//Graph commitTreeG) throws Exception//Stage primaryStage
