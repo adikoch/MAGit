@@ -370,8 +370,8 @@ public class GitManager {
             File remotePath = Paths.get(newRepPath.toString() + "\\.magit\\RemoteRepPath").toFile();
             GITRepository.setRepositoryRemotePath(readTextFile((remotePath.toString())));
         }
-//        if(GITRepository.getRepositoryRemoteName() != null)
-//            new File(GITRepository.getRepositoryPath().toString() + "\\.magit\\Branches\\" + GITRepository.getRepositoryRemoteName()).mkdirs();
+        if(GITRepository.getRepositoryRemoteName() != null)
+            new File(GITRepository.getRepositoryPath().toString() + "\\.magit\\Branches\\" + GITRepository.getRepositoryRemoteName()).mkdirs();
 
         this.GITRepository.getRepositorysBranchesObjects(GITRepository.getRepositoryPath());
         setBranchesProp();

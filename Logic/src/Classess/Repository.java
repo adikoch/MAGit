@@ -121,20 +121,36 @@ public class Repository {
 
 
    void getRepositorysBranchesObjects(Path RepPath) {
-        Path BranchesPath = Paths.get(RepPath.toString() + "\\.magit\\Branches");
-        File[] allBranches = BranchesPath.toFile().listFiles();
-        String fileContent;
+       Path BranchesPath = Paths.get(RepPath.toString() + "\\.magit\\Branches");
+       File[] allBranches = BranchesPath.toFile().listFiles();
+       String fileContent;
 
-        for (File f : allBranches) {
-            {
-                if(!f.getName().equals("Head")) {
-                    fileContent = GitManager.readTextFile(f.toString());
-                    this.branches.add(new Branch(f.getName(), fileContent,false,false));
-                }
-            }
-        }
+       for (File f : allBranches) {
+           {
 
-    }
+               if(!(f.getName().equals("Head") || f.isDirectory())) {
+                   fileContent = GitManager.readTextFile(f.toString());
+                   this.branches.add(new Branch(f.getName(), fileContent, false, false));
+
+               }
+               if(f.isDirectory())
+               {
+                   String intro = this.repositoryRemoteName + "\\";
+
+                   Path remoteBranchesPath = Paths.get(RepPath.toString() + "\\.magit\\Branches\\" + f.getName());
+                   allBranches = remoteBranchesPath.toFile().listFiles();
+                   for(File t:allBranches)
+                   {
+                       fileContent = GitManager.readTextFile(t.toString());
+                       Path p = t.toPath();
+                       this.branches.add(new Branch(intro +p.getFileName(), fileContent, true, false));
+
+                   }
+               }
+           }
+       }
+
+   }
 
     void getRemoteRepositoryBranchesObjects(Path repRemotePath) {
         Path BranchesPath = Paths.get(repRemotePath.toString() + "\\.magit\\Branches");
