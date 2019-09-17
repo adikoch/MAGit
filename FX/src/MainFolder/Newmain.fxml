@@ -19,7 +19,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="MainController">
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="MainFolder.MainController">
     <children>
         <VBox layoutX="92.0" layoutY="38.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <children>
@@ -55,8 +55,8 @@
                 </MenuBar>
                 <ToolBar prefHeight="40.0" prefWidth="200.0">
                     <items>
-                        <Button mnemonicParsing="false" text="Push" />
-                        <Button mnemonicParsing="false" text="Pull" />
+                        <Button fx:id="Push" mnemonicParsing="false" onAction="#pushOnAction" text="Push" />
+                        <Button fx:id="Pull" mnemonicParsing="false" onAction="#pullOnAction" text="Pull" />
                         <Button fx:id="Fetch" mnemonicParsing="false" onAction="#fetchOnAction" text="Fetch" />
                         <Button fx:id="merge" mnemonicParsing="false" onAction="#mergeTwoBranchesOnAction" text="Merge" />
                         <SplitMenuButton mnemonicParsing="false" text="Commit">

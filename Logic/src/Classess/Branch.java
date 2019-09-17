@@ -12,7 +12,24 @@ public class Branch {
         private String branchName;
         private Commit pointedCommit;
         private  String pointedCommitSHA1="";
-        private Boolean isRemoteTrackingBranch;
+
+    public Boolean getRemoteTrackingBranch() {
+        return isRemoteTrackingBranch;
+    }
+
+    public Boolean getRemoteBranch() {
+        return isRemoteBranch;
+    }
+
+    public void setRemoteTrackingBranch(Boolean remoteTrackingBranch) {
+        isRemoteTrackingBranch = remoteTrackingBranch;
+    }
+
+    public void setRemoteBranch(Boolean remoteBranch) {
+        isRemoteBranch = remoteBranch;
+    }
+
+    private Boolean isRemoteTrackingBranch;
         private Boolean isRemoteBranch;
 
         //con

@@ -473,10 +473,20 @@ public void copyObjectsFiles(String pathRemoteRep,String pathNewRep)
         for (Branch b : GITRepository.getBranches()) {
             //try{
             //if(b.getPointedCommit() == null) {
-                Commit newCommit = createCommitRec(b.getPointedCommitSHA1(),repPath);
-                newCommit.setCommitFileContentToSHA();
-                getGITRepository().getCommitMap().put(newCommit.getSHA(), newCommit);
-                b.setPointedCommit(newCommit);
+            updateCommit(b,repPath);
+//            Commit newCommit = createCommitRec(b.getPointedCommitSHA1(), repPath);
+//            newCommit.setCommitFileContentToSHA();
+//            getGITRepository().getCommitMap().put(newCommit.getSHA(), newCommit);
+//            b.setPointedCommit(newCommit);
+        }
+    }
+
+    public void updateCommit(Branch b,String repPath) throws IOException {
+        Commit newCommit = createCommitRec(b.getPointedCommitSHA1(), repPath);
+        newCommit.setCommitFileContentToSHA();
+        getGITRepository().getCommitMap().put(newCommit.getSHA(), newCommit);
+        b.setPointedCommit(newCommit);
+    }
            // }
             //}
             //catch(IOException e){}
@@ -515,8 +525,8 @@ public void copyObjectsFiles(String pathRemoteRep,String pathNewRep)
             //br.close();
             //GITRepository.getCommitList().put(newCommit.getSHA(), newCommit);
             //מיותר כבר הוספנו למעלה
-        }
-    }
+
+
 
     public Commit createCommitRec(String sha1,String repPath) throws IOException
     {
@@ -1602,7 +1612,7 @@ GITRepository.setRepositoryRemotePath(oldRepository.getLocation());
                 GitManager.createFileInMagit(b, GITRepository.getRepositoryPath());
                 this.GITRepository.getBranches().add(b);
                 b.setPointedCommit(GITRepository.getCommitMap().get(fileContent));
-
+b.setPointedCommitSHA1(fileContent);
         } else {
 
 
@@ -1625,7 +1635,7 @@ GITRepository.setRepositoryRemotePath(oldRepository.getLocation());
         //while(true) {
             //if (!fileContent.equals(getBranchByName(bra.getPointedCommitSHA1()))) {
             bra.setPointedCommitSHA1(fileContent);
-            getCommitForBranches(GITRepository.getRepositoryRemotePath());
+        updateCommit(bra,GITRepository.getRepositoryRemotePath());
             bra.setPointedCommit(this.GITRepository.getCommitList().get(fileContent));
             // }
 
@@ -1639,7 +1649,7 @@ public void executePull() throws Exception {
 
         String intro = GITRepository.getRepositoryRemoteName() + "\\";
         updateSingleBranch(f, intro);
-        Commit c = GITRepository.getBranchByName(intro+GITRepository.getHeadBranch()).getPointedCommit();
+        Commit c = GITRepository.getBranchByName(intro+GITRepository.getHeadBranch().getBranchName()).getPointedCommit();
         GITRepository.getHeadBranch().setPointedCommit(c);
         c.setCommitFileContentToSHA();
         GITRepository.getHeadBranch().setPointedCommitSHA1(c.getSHA());

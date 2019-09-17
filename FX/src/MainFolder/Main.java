@@ -1,11 +1,9 @@
+package MainFolder;
+
 import Classess.GitManager;
-import com.fxgraph.graph.Graph;
-import com.fxgraph.graph.PannableCanvas;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 
@@ -18,8 +16,9 @@ public class Main extends Application {
 
         FXMLLoader loader = new FXMLLoader();
 
+
         // load main fxml
-        URL mainFXML = getClass().getResource("/Newmain.fxml");
+        URL mainFXML = getClass().getResource("/MainFolder/Newmain.fxml");
         loader.setLocation(mainFXML);
         AnchorPane root = loader.load();
 

@@ -1,3 +1,5 @@
+package MainFolder;
+
 import Classess.*;
 import com.fxgraph.edges.Edge;
 import com.fxgraph.graph.Graph;
@@ -16,7 +18,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
@@ -28,7 +29,6 @@ import javafx.stage.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -36,7 +36,6 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.ArrayList;
 
-import static java.lang.System.mapLibraryName;
 import static java.lang.System.out;
 
 //import java.awt.*;
@@ -94,6 +93,11 @@ public class MainController implements Initializable {
     Button showGraph;
     @FXML
     Button Fetch;
+    @FXML
+    Button Pull;
+    @FXML
+    Button Push;
+
     /*
      *
      * */
@@ -606,7 +610,7 @@ public class MainController implements Initializable {
                     manager.switchRepository(Paths.get(pathString));
                     RepositoryNameP.set(manager.getGITRepository().getRepositoryName());
                     RepositoryPAthP.setValue(manager.getGITRepository().getRepositoryPath().toString());
-                    dynamicStatusContentP.set("Import of Repository finished Successfully");
+                    dynamicStatusContentP.set("Switch to Repository finished Successfully");
 
                 } catch (IOException e) {
                     popUpMessage("opening zip file failed");
@@ -622,7 +626,7 @@ public class MainController implements Initializable {
                 manager.getGITRepository().getRepositoryName();
                 RepositoryNameP.set(manager.getGITRepository().getRepositoryName());
                 RepositoryPAthP.setValue(manager.getGITRepository().getRepositoryPath().toString());
-                dynamicStatusContentP.set("Import of Repository finished Successfully");
+                dynamicStatusContentP.set("Switch to Repository finished Successfully");
 
             } catch (IOException e) {
                 popUpMessage("opening zip file failed");
@@ -812,7 +816,7 @@ public class MainController implements Initializable {
         FXMLLoader loader = new FXMLLoader();
 
         // load main fxml
-        URL mainFXML = getClass().getResource("/Conflict.fxml");
+        URL mainFXML = getClass().getResource("/MainFolder/Conflict.fxml");
         loader.setLocation(mainFXML);
         AnchorPane root1 = loader.load();
 //    FXMLLoader loader = getClass().getResource("/Conflict.fxml");
@@ -1170,9 +1174,73 @@ public class MainController implements Initializable {
     }
 
     public void fetchOnAction() throws Exception {
-       manager.executeFetch();
+            manager.executeFetch();
     }
+public void pullOnAction() throws Exception {
 
+    if (manager.getGITRepository().getHeadBranch().getRemoteTrackingBranch().equals(true)) {
+
+        manager.ExecuteCommit("", false);
+        if (manager.getDeletedFiles().size() != 0 ||
+                manager.getUpdatedFiles().size() != 0 ||
+                manager.getCreatedFiles().size() != 0) {
+            popUpConfirmationBox("There are unsaved changes in the WC. would you like to save it before checkout?", "Yes", "No");
+            if (InputTextBox == null) return;
+            String toCommit = InputTextBox;
+            InputTextBox = null;
+            if (toCommit.toLowerCase().equals("1")) {
+                try {
+                    manager.ExecuteCommit("commit before checkout to " + manager.getGITRepository().getHeadBranch() + "Branch", true);
+                } catch (Exception er) {
+                    out.println("Unable to create zip file");
+                }
+            } else {
+                return;
+            }
+        }
+            manager.executePull();
+        manager.getCreatedFiles().clear();
+        manager.getDeletedFiles().clear();
+        manager.getUpdatedFiles().clear();
+    } else
+        popUpMessage("The Head Branch is not a Temote Tracking Branch!");
+}
+
+
+public  void pushOnAction() throws Exception {
+
+    if (manager.getGITRepository().getHeadBranch().getRemoteTrackingBranch().equals(true)) {
+        String intro = manager.getGITRepository().getRepositoryRemotePath() + "\\";
+
+        Folder newFolder = manager.GenerateFolderFromWC(Paths.get(manager.getGITRepository().getRepositoryRemotePath()));// ייצג את הספרייה הראשית
+        Folder oldFolder = manager.getGITRepository().getBranchByName(intro+manager.getGITRepository().getHeadBranch()
+        .getBranchName()).getPointedCommit().getRootFolder();
+       manager.createShaAndZipForNewCommit(newFolder, oldFolder, false, manager.getGITRepository().getRepositoryPath());
+        if (manager.getDeletedFiles().size() != 0 ||
+                manager.getUpdatedFiles().size() != 0 ||
+                manager.getCreatedFiles().size() != 0) {
+            popUpConfirmationBox("There are unsaved changes in the WC. would you like to save it before checkout?", "Yes", "No");
+            if (InputTextBox == null) return;
+            String toCommit = InputTextBox;
+            InputTextBox = null;
+            if (toCommit.toLowerCase().equals("1")) {
+                try {
+                    manager.ExecuteCommit("commit before checkout to " + manager.getGITRepository().getHeadBranch() + "Branch", true);
+                } catch (Exception er) {
+                    out.println("Unable to create zip file");
+                }
+            } else {
+                return;
+            }
+        }
+        manager.executePush();
+        manager.getCreatedFiles().clear();
+        manager.getDeletedFiles().clear();
+        manager.getUpdatedFiles().clear();
+
+    } else
+        popUpMessage("The Head Branch is not a Temote Tracking Branch!");
+}
    /* @FXML
     public void showGraph()//Graph commitTreeG) throws Exception//Stage primaryStage
     {
