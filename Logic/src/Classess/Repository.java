@@ -11,13 +11,15 @@ import java.util.*;
 import generated.*;
 import puk.team.course.magit.ancestor.finder.CommitRepresentative;
 
+
 public class Repository {
 //members
     private Path path;
     private HashSet<Branch> branches;
     private Branch head;
-       private Map<String, Commit> commitMap;
+    private Map<String, Commit> commitMap;
     private String repositoryName;
+
 
 
     //String remoteReferenceName;
@@ -125,6 +127,7 @@ public class Repository {
     {
         return commitMap.get(sha1);
     }
+
 
 }
 

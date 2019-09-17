@@ -1,3 +1,5 @@
+package MainFolder;
+
 import Classess.*;
 import com.fxgraph.edges.Edge;
 import com.fxgraph.graph.Graph;
@@ -95,8 +97,10 @@ public class MainController {
     public SimpleObjectProperty CommitTextP;
     public SimpleStringProperty RepositoryNameP;
     public SimpleStringProperty RepositoryPAthP;
-    public SimpleObjectProperty BraanchesP;
+    //public SimpleObjectProperty BraanchesP;
     public SimpleStringProperty dynamicStatusContentP;
+    public SimpleStringProperty commitInfoP;
+
 
     public Stage primaryStage;
     public GitManager manager;
@@ -111,6 +115,7 @@ public class MainController {
         dynamicStatusContentP = new SimpleStringProperty();
         CommitTextP = new SimpleObjectProperty();
         commitTreeG = new Graph();
+        commitInfoP = new SimpleStringProperty();
     }
 
 
@@ -118,6 +123,7 @@ public class MainController {
         RepName.textProperty().bind(RepositoryNameP);
         RepPath.textProperty().bind(RepositoryPAthP);
         dynamicStatusContent.textProperty().bind(dynamicStatusContentP);
+        CommitInformation.textProperty().bind(commitInfoP);
         //CommitText.().bind(CommitTextP);
     }
 
@@ -866,6 +872,7 @@ try {
 
 
 
+
     public void popUpMessage(String toShow) {
         Stage popUpWindow = new Stage();
 
@@ -933,7 +940,8 @@ try {
         while (entries.hasNext()) {//פור על הקומיטים
             Map.Entry thisEntry = (Map.Entry) entries.next();
             Commit commit = (Commit) thisEntry.getValue();
-            ICell cell = new CommitNode(commit.getCreationDate(), commit.getChanger(), commit.getDescription());
+            //ICell cell = new CommitNode(commit.getCreationDate(), commit.getChanger(), commit.getDescription());
+            ICell cell = new CommitNode(commit,this);
             model.addCell(cell);
             mapOfNodes.put(commit.getSHA(),cell);//מקשר בין נוד לבין השאשל הקומיט שמצביע עליו
         }
@@ -971,77 +979,77 @@ try {
 
     }
 
-   /* @FXML
-    public void showGraph()//Graph commitTreeG) throws Exception//Stage primaryStage
-    {
-        if(manager.getGITRepository()==null)
-        {
-            popUpMessage("There is no repository defined, no commits to show");
-            return;
-        }
-        Graph commitTreeG = new Graph();
-        final Model model = commitTreeG.getModel();
-        commitTreeG.beginUpdate();
-
-//בתוך הרפוזטורי בסוויצ רפוזטורי לעשות שהקומיטים של הרפוזטורי הנוכחית תמיד כולם במאפ, שחזור מהקבצים.
-
-        //LinkedList<Commit> listOfCommits= turnMapToSortedList();
-
-        //
-
-        turnMapToSorted();
-
-        HashMap<String,ICell> mapOfNodes= new HashMap<>();
-
-        Iterator entries = manager.getGITRepository().getCommitMap().entrySet().iterator();
-        while (entries.hasNext()) {//פור על הקומיטים
-            Map.Entry thisEntry = (Map.Entry) entries.next();
-            Commit commit = (Commit) thisEntry.getValue();
-            ICell cell = new CommitNode(commit.getCreationDate(), commit.getChanger(), commit.getDescription());
-            model.addCell(cell);
-            mapOfNodes.put(commit.getSHA(),cell);//מקשר בין נוד לבין השאשל הקומיט שמצביע עליו
-        }
-
-        entries = manager.getGITRepository().getCommitMap().entrySet().iterator();
-        while (entries.hasNext()) {//פור על הקומיטים
-            Map.Entry thisEntry = (Map.Entry) entries.next();
-            Commit commit = (Commit) thisEntry.getValue();
-//            LinkedList<String> prevCommitsList=new LinkedList<String>();
-//            prevCommitsList.add(commit.getSHA1anotherPreveiousCommit());
-//            prevCommitsList.add(commit.getSHA1PreveiousCommit());
-            Commit prevCommit= manager.getGITRepository().getCommitMap().get(commit.getSHA1PreveiousCommit());
-            if(prevCommit!=null)
-            {//אג מהקומיט commit אל prevCommit
-                final Edge edge = new Edge(mapOfNodes.get(commit.getSHA()),mapOfNodes.get(prevCommit.getSHA()));
-                model.addEdge(edge);
-            }
-
-            Commit prevCommit2= manager.getGITRepository().getCommitMap().get(commit.getSHA1anotherPreveiousCommit());
-            if(prevCommit2!=null)
-            {
-                final Edge edge = new Edge(mapOfNodes.get(commit.getSHA()),mapOfNodes.get(prevCommit2.getSHA()));//(mapOfNodes.get(commit.getSHA(),mapOfNodes.get(prevCommit.getSHA()))//(commit,prevCommit);
-                model.addEdge(edge);
-            }
-            //לכל אחד מהפריב קומיט של commit אם לא נאל יוצרת קשת מהקומיט שמחוץ למקוננת אל הרומיט שבתוך המקוננת
-            //בתוך המקוננת היא ההורים שלו ומחוץ זה כל אחד מהקומיטים שקיימים
-            //כלומר קשת מהקומיט שלי אל ההורים
-        }
-
-
-        commitTreeG.endUpdate();
-        PannableCanvas canvas = commitTreeG.getCanvas();
-        CommitTree.setContent(canvas);
-        commitTreeG.layout(new CommitTreeLayout());
-
-    }
+//    @FXML
+//    public void showGraph()//Graph commitTreeG) throws Exception//Stage primaryStage
+//    {
+//        if(manager.getGITRepository()==null)
+//        {
+//            popUpMessage("There is no repository defined, no commits to show");
+//            return;
+//        }
+//        Graph commitTreeG = new Graph();
+//        final Model model = commitTreeG.getModel();
+//        commitTreeG.beginUpdate();
+//
+////בתוך הרפוזטורי בסוויצ רפוזטורי לעשות שהקומיטים של הרפוזטורי הנוכחית תמיד כולם במאפ, שחזור מהקבצים.
+//
+//        //LinkedList<Commit> listOfCommits= turnMapToSortedList();
+//
+//        //
+//
+//        turnMapToSorted();
+//
+//        HashMap<String,ICell> mapOfNodes= new HashMap<>();
+//
+//        Iterator entries = manager.getGITRepository().getCommitMap().entrySet().iterator();
+//        while (entries.hasNext()) {//פור על הקומיטים
+//            Map.Entry thisEntry = (Map.Entry) entries.next();
+//            Commit commit = (Commit) thisEntry.getValue();
+//            ICell cell = new CommitNode(commit.getCreationDate(), commit.getChanger(), commit.getDescription());
+//            model.addCell(cell);
+//            mapOfNodes.put(commit.getSHA(),cell);//מקשר בין נוד לבין השאשל הקומיט שמצביע עליו
+//        }
+//
+//        entries = manager.getGITRepository().getCommitMap().entrySet().iterator();
+//        while (entries.hasNext()) {//פור על הקומיטים
+//            Map.Entry thisEntry = (Map.Entry) entries.next();
+//            Commit commit = (Commit) thisEntry.getValue();
+////            LinkedList<String> prevCommitsList=new LinkedList<String>();
+////            prevCommitsList.add(commit.getSHA1anotherPreveiousCommit());
+////            prevCommitsList.add(commit.getSHA1PreveiousCommit());
+//            Commit prevCommit= manager.getGITRepository().getCommitMap().get(commit.getSHA1PreveiousCommit());
+//            if(prevCommit!=null)
+//            {//אג מהקומיט commit אל prevCommit
+//                final Edge edge = new Edge(mapOfNodes.get(commit.getSHA()),mapOfNodes.get(prevCommit.getSHA()));
+//                model.addEdge(edge);
+//            }
+//
+//            Commit prevCommit2= manager.getGITRepository().getCommitMap().get(commit.getSHA1anotherPreveiousCommit());
+//            if(prevCommit2!=null)
+//            {
+//                final Edge edge = new Edge(mapOfNodes.get(commit.getSHA()),mapOfNodes.get(prevCommit2.getSHA()));//(mapOfNodes.get(commit.getSHA(),mapOfNodes.get(prevCommit.getSHA()))//(commit,prevCommit);
+//                model.addEdge(edge);
+//            }
+//            //לכל אחד מהפריב קומיט של commit אם לא נאל יוצרת קשת מהקומיט שמחוץ למקוננת אל הרומיט שבתוך המקוננת
+//            //בתוך המקוננת היא ההורים שלו ומחוץ זה כל אחד מהקומיטים שקיימים
+//            //כלומר קשת מהקומיט שלי אל ההורים
+//        }
+//
+//
+//        commitTreeG.endUpdate();
+//        PannableCanvas canvas = commitTreeG.getCanvas();
+//        CommitTree.setContent(canvas);
+//        commitTreeG.layout(new CommitTreeLayout());
+//
+//    }
 
     public void turnMapToSorted()
     {
-        LinkedList<Commit> sortedList= turnMapToSortedList();//inserting the map into a list, sort it
+        LinkedList<Commit> sortedList= turnMapToSortedList();//inserting the map into a list, sort it in a descending order
         manager.getGITRepository().getCommitMap().clear();//clearing the map
-        for(int i=1;i<=sortedList.size();i++)//in a descending order inserting back to map
+        for(Commit c:sortedList)// inserting back to map
         {
-            manager.getGITRepository().getCommitMap().put(sortedList.getLast().getSHA(),sortedList.getLast());
+            manager.getGITRepository().getCommitMap().put(c.getSHA(),c);
         }
     }
 
@@ -1055,20 +1063,313 @@ try {
             Commit commit = (Commit) thisEntry.getValue();
             list.add(commit);
         }
-        list.sort(new Comperator());//לא יודעת איך עושים את הקומפרטור
+        Collections.sort(list,new Comperator());
         return list;
     }
 
     //קומפרטור להשוואה למיון של הקומיטים לפי תאריך
     class Comperator implements Comparator<Commit>
     {
-        // Used for sorting in ascending order of
-        // roll name
+        // Used for sorting in ascending order of date
         public int compare(Commit a, Commit b)
         {
-            return a.getCreationDate().compareTo(b.getCreationDate());//1 אם גדול 0 אם שווה מינוס אם קטן
+
+            try {
+                return manager.getDateObjectFromString(a.getCreationDate()).compareTo(manager.getDateObjectFromString(b.getCreationDate()));
+            } catch (Exception e) {
+                popUpTextBox("There was a problem with the date of a certain commit");
+                return 0;
+            }
         }
-    }*/
+    }
+
+    ////inbar nisoi
+
+    public void ResetBranchToCommit(Commit newCommit) {
+        //לעבור על כל הברנצים הקיימים כבר המערכת, אם אחד מהם מצביע על הקומיט שנתנו לי אז גם לוגית לשנות את הבראנצ הנוכחי להיות הבראנצ הזה שקיים וגם בקבצים לשנות את השם שכתוב בתוך הקובץ של הד להיות השם של מי שמצאתי שקיים
+        //אם אף אחד מהבראנצים הקיימים לא מצביע על קומיט שכזה ליצור קובץ חדש של בראנצ, תוכנו יהיה השא1 שקיבלתי מהמשתמש, וגם לוגית להוסיף בראנצ חדש לרשימת הראנצים
+
+
+        String sha = newCommit.getSHA();
+
+        try {
+            //לפני שיוצרת יכולה לבדוק אם כבר קיים במערכת לוגית
+            newCommit= manager.getCommitFromSha1UsingFiles(manager.getGITRepository().getRepositoryPath().toString(), sha);
+            newCommit.setSHA1(sha);}
+        catch (Exception e) {
+            out.println(e.getMessage());
+            return;}
+        try {newCommit.setRootFolder(manager.generateFolderFromCommitObject(newCommit.getRootFolderSHA1()));}
+        catch(Exception e) {out.println(e.getMessage());}
+
+        //checking if there are open changes in the WC
+        try {
+            manager.ExecuteCommit("", false);
+            if (manager.getDeletedFiles().size() != 0 ||
+                    manager.getUpdatedFiles().size() != 0 ||
+                    manager.getCreatedFiles().size() != 0) {
+                popUpConfirmationBox("There are unsaved changes in the WC. would you like to save it before checkout?","Yes","No");
+                out.println("There are unsaved changes in the WC. would you like to save it before checkout? (yes/no");
+                if(InputTextBox==null) return;
+                String toCommit = InputTextBox;
+                InputTextBox=null;
+                if (toCommit.toLowerCase().equals("1")) {
+                    try{
+                        manager.ExecuteCommit("commit before checkout to " +manager.getGITRepository().getHeadBranch() + "Branch", true);}
+                    catch(Exception er) {
+                        out.println("Unable to create zip file");
+                    }
+                }
+            }
+
+            //text file update:
+            manager.updateFile(sha);
+            manager.getGITRepository().getHeadBranch().setPointedCommit(newCommit);//////////////////
+
+            manager.executeCheckout(manager.getGITRepository().getHeadBranch().getBranchName());
+            manager.getCreatedFiles().clear();
+            manager.getDeletedFiles().clear();
+            manager.getUpdatedFiles().clear();
+        } catch (Exception er) {
+            out.println("Unable to create zip file");
+        }
+
+
+    }
+
+    public void CreateNewBranchToCommit(Commit commit) {
+        if (manager.getGITRepository() == null) {
+            popUpMessage("There is no repository defined, cannot creat new branch");
+            return;
+        }
+        String newBranchName;
+
+        popUpTextBox("Please enter the name of the new branch");
+        if(InputTextBox==null) return;
+        newBranchName = InputTextBox;//getting the name
+        InputTextBox=null;
+
+        if (manager.getGITRepository().getBranchByName(newBranchName) != null) //checking if exist already
+        {
+            popUpMessage("Branch name already exist, please enter a different name");
+            CreateNewBranchToCommit(commit);
+            return;
+
+        }
+
+        manager.CreatBranchToCommit(newBranchName,commit);
+        dynamicStatusContentP.set("Creation of Branch finished Successfully");
+
+        //valid
+
+    }
+
+//מקבלת קומי ומאחדת אותו עם ההד בראנצ
+    //לשאול את עדי מה הולך פה
+    public void mergeWithHeadBranch(Commit commit) throws Exception {
+
+        String theirBranchName;
+
+        popUpTextBox("Please enter the name of the second branch");
+
+        theirBranchName = InputTextBox;//getting the name
+        try {
+            if (manager.getGITRepository().getBranchByName(theirBranchName) != null) //checking if exist already
+            {
+                manager.merge(theirBranchName);
+                return;
+
+            } else {
+                popUpMessage("Branch does not exist, please enter a name");
+
+            }
+        }
+        catch (InvocationTargetException e)
+        {
+            out.println(e.getCause());
+        }
+    }
+
+    public void ShowCommitHierarchy(Commit commit) {
+
+        try{
+            Folder folderOfCommit= manager.generateFolderFromCommitObject(commit.getRootFolderSHA1());
+            TreeItem<String> toShow;//= new TreeItem<>(manager.getGITRepository().getRepositoryName());
+
+            toShow=showTreeLookRec(folderOfCommit,manager.getGITRepository().getRepositoryPath().toString());
+            toShow.setExpanded(true);
+
+            //showing
+            //TreeView<String> comtree = new TreeView<> (toShow);
+            //StackPane root = new StackPane();
+            //root.getChildren().add(comtree);
+            // primaryStage.setScene(new Scene(root, 300, 250));
+            //primaryStage.show();
+            CommitText.setRoot(toShow);
+        }
+
+        catch(Exception e){popUpMessage("Unable to generate commit using the files");}
+
+        try {
+            String FilesOfCommit = manager.showFilesOfCommit();
+            out.println(FilesOfCommit);
+
+
+        } catch (Exception e) {
+            popUpMessage("Opening zip file failed");
+        }
+    }
+
+    public void showCommitsInfo(Commit commit)
+    {
+        String showing;
+        showing= "commit's sha1: " + commit.getSHA() + "\n" +
+                "message: " + commit.getDescription() +  "\n" +
+                "commiter: " + commit.getChanger() + "\n" +
+                "creation date: " + commit.getCreationDate() + "\n" +
+                "prev commmit sha1: " + commit.getSHA1PreveiousCommit() + "\n" +
+                "prevprev commit sha1: " + commit.getSHA1anotherPreveiousCommit() + "\n" +
+                "delte according to prev commit(s): " + calculateDelta(commit) + "\n";
+        commitInfoP.setValue(showing);
+
+    }
+
+    public String calculateDelta(Commit commit)
+    {
+
+        LinkedList<Path> createdDelta=new LinkedList<>();
+        LinkedList<Path> deletedDelta=new LinkedList<>();
+        LinkedList<Path> updatedDelta=new LinkedList<>();
+
+        if(commit.getSHA1PreveiousCommit()!=null) {
+            Folder newFolder = commit.getRootFolder();
+            Folder oldFolder = manager.getGITRepository().getCommitMap().get(commit.getSHA1PreveiousCommit()).getRootFolder();
+            try {
+                manager.createShaAndZipForNewCommit(newFolder, oldFolder, false, manager.getGITRepository().getRepositoryPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            for (Path path : manager.getCreatedFiles()) {
+                createdDelta.add(path);
+            }
+            for (Path path : manager.getDeletedFiles()) {
+                deletedDelta.add(path);
+            }
+            for (Path path : manager.getUpdatedFiles()) {
+                updatedDelta.add(path);
+            }
+
+            manager.getCreatedFiles().clear();
+            manager.getDeletedFiles().clear();
+            manager.getUpdatedFiles().clear();
+        }
+        if(commit.getSHA1anotherPreveiousCommit()!=null) {
+
+            Folder newFolder = commit.getRootFolder();
+            Folder oldFolder = manager.getGITRepository().getCommitMap().get(commit.getSHA1PreveiousCommit()).getRootFolder();
+            try {
+                manager.createShaAndZipForNewCommit(newFolder, oldFolder, false, manager.getGITRepository().getRepositoryPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            for (Path path : manager.getCreatedFiles())
+                {createdDelta.add(path);}
+            for (Path path : manager.getDeletedFiles())
+                {deletedDelta.add(path);}
+            for (Path path : manager.getUpdatedFiles())
+                {updatedDelta.add(path);}
+
+            manager.getCreatedFiles().clear();
+            manager.getDeletedFiles().clear();
+            manager.getUpdatedFiles().clear();
+        }
+
+        if(commit.getSHA1anotherPreveiousCommit()!=null)
+        {
+            Folder newFolder = commit.getRootFolder();
+            Folder oldFolder = manager.getGITRepository().getCommitMap().get(commit.getSHA1anotherPreveiousCommit()).getRootFolder();
+            try {
+                manager.createShaAndZipForNewCommit(newFolder, oldFolder, false, manager.getGITRepository().getRepositoryPath());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            for (Path path : manager.getCreatedFiles())
+            {createdDelta.add(path);}
+            for (Path path : manager.getDeletedFiles())
+            {deletedDelta.add(path);}
+            for (Path path : manager.getUpdatedFiles())
+            {updatedDelta.add(path);}
+
+            manager.getCreatedFiles().clear();
+            manager.getDeletedFiles().clear();
+            manager.getUpdatedFiles().clear();
+        }
+
+        StringBuilder stringBuilder= new StringBuilder();
+
+        for (Path path : manager.getCreatedFiles())
+        {
+            stringBuilder.append(path.toString());
+            stringBuilder.append(System.lineSeparator());
+        }
+        for (Path path : manager.getDeletedFiles())
+        {
+            stringBuilder.append(path.toString());
+            stringBuilder.append(System.lineSeparator());
+        }
+        for (Path path : manager.getUpdatedFiles())
+        {
+            stringBuilder.append(path.toString());
+            stringBuilder.append(System.lineSeparator());
+        }
+
+        if(commit.getSHA1PreveiousCommit()==null || commit.getSHA1anotherPreveiousCommit()==null)
+        {
+            return "nothing changed";
+        }
+        else return stringBuilder.toString();
+
+
+        }
+
+
+
+
+//    {
+//        //לעשות בדיוק מה שאקסקיוט קומיט עם ה0 עושה רק שעל שני האבות,לתוך רשימות חדשות שיכילו את זה, בין כל פעם לרוקן את הרשימות האמיתיות
+//
+//
+//        try {
+//                manager.ExecuteCommit("", false);
+//                if (manager.getDeletedFiles().size() != 0 ||
+//                        manager.getUpdatedFiles().size() != 0 ||
+//                        manager.getCreatedFiles().size() != 0) {
+//                    popUpTextBox("There are unsaved changes in the WC. would you like to save it before checkout? (yes/no");
+//                    if (InputTextBox==null) return "";
+//                    String toCommit = InputTextBox;
+//                    InputTextBox = null;
+//                    if (toCommit.toLowerCase().equals("yes".toLowerCase())) {
+//                        try {
+//                            manager.ExecuteCommit("commit before checkout to " + branchName + "Branch", true);
+//                        } catch (Exception e) {
+//                            popUpMessage("Unable to create zip file");
+//                            return "";
+//                        }
+//                    }
+//                }
+//
+//                manager.getCreatedFiles().clear();
+//                manager.getDeletedFiles().clear();
+//                manager.getUpdatedFiles().clear();
+//            } catch (Exception e) {
+//                popUpMessage("Unable to create zip file");
+//            }
+//        }
+
+
+
+
 }
 
 

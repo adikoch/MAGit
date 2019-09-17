@@ -120,7 +120,7 @@ public class GitManager {
         }
     }
 
-    private void createShaAndZipForNewCommit(Folder newFolder, Folder oldFolder, Boolean isCreateZip, Path path) throws IOException { //V
+    public void createShaAndZipForNewCommit(Folder newFolder, Folder oldFolder, Boolean isCreateZip, Path path) throws IOException { //V
         ArrayList<Folder.Component> newComponents = new ArrayList<>();
         ArrayList<Folder.Component> oldComponents = new ArrayList<>();
         Path objectPath = Paths.get(GITRepository.getRepositoryPath().toString() + "\\.magit\\Objects");
@@ -259,7 +259,7 @@ public class GitManager {
         }
     }
 
-    private Folder GenerateFolderFromWC(Path currentPath) {
+    public Folder GenerateFolderFromWC(Path currentPath) {
         File[] allFileComponents = currentPath.toFile().listFiles();
         String sh1Hex = "";
         String fileContent = "";
@@ -741,6 +741,21 @@ public class GitManager {
         }
         return returnedDate;
     }
+
+    public static Date getDateObjectFromString(String date) throws Exception {
+        Date returnedDate;
+//        Date date1=new SimpleDateFormat("dd.MM.YYYY - hh:mm:ss:sss").parse(date);//////////////ענביתתתתתתת
+//        return date1;
+//long fj = date.to
+        DateFormat sdf = new SimpleDateFormat("dd.MM.yyyy-HH:mm:ss:SSS");
+        try {
+            returnedDate = sdf.parse(date);
+        } catch (ParseException e) {
+            throw new Exception("Invalid date structure");
+        }
+        return returnedDate;
+    }
+
 
     @Override
     public String toString() {
@@ -1273,6 +1288,22 @@ public class GitManager {
 
 
     }
+
+    //inbar nisoim
+
+    public void CreatBranchToCommit(String newBranchName, Commit newCommit)
+    {
+        Path pathOfNewFile = Paths.get(getGITRepository().getRepositoryPath().toString() + "\\" + ".magit\\branches\\");
+        String sha1OfCurrCommit = newCommit.getSHA();//sha1 of main commit
+        createFile(newBranchName, sha1OfCurrCommit, pathOfNewFile, new Date().getTime());// a file created in branches
+
+        Branch newBranch = new Branch(newBranchName, GITRepository.getHeadBranch().getPointedCommit().getSHA());
+        newBranch.setPointedCommit(newCommit);//creating and initialising
+
+        GITRepository.getBranches().add(newBranch);//adding to logic//not good
+    }
+
+
 
 
 }

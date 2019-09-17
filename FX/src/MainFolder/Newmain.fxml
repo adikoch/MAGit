@@ -19,7 +19,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="MainController">
+<AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="MainFolder.MainController">
     <children>
         <VBox layoutX="92.0" layoutY="38.0" prefHeight="400.0" prefWidth="600.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <children>
@@ -36,7 +36,7 @@
                         </Menu>
                         <Menu mnemonicParsing="false" text="Commit">
                             <items>
-                                <MenuItem fx:id="ShowCommitsInfo" mnemonicParsing="false" onAction="#ShowCommitFilesOnAction" text="Show commits info" />
+                                <MenuItem fx:id="ShowCommitsInfo" mnemonicParsing="false" onAction="#ShowCommitFilesOnAction" text="Show commits hierarchy" />
                                 <MenuItem fx:id="ShowStatus" mnemonicParsing="false" onAction="#ShowStatusOnAction" text="Show Status" />
                                 <MenuItem fx:id="Commit" mnemonicParsing="false" onAction="#CommitOnAction" text="Commit" />
                             </items>
@@ -93,6 +93,9 @@
                                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                                  <children>
                                     <TreeView fx:id="CommitText" prefHeight="154.0" prefWidth="415.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+                                    <Label alignment="TOP_LEFT" layoutX="193.0" layoutY="-1.0" prefHeight="149.0" prefWidth="222.0" text="commit's info:" />
+                                     <Label fx:id="CommitInformation" layoutX="200.0" layoutY="31.0" text="Label" />
+
                                  </children></AnchorPane>
                                     </items>
                                 </SplitPane>

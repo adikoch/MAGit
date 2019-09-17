@@ -9,6 +9,7 @@
     <orderEntry type="jdk" jdkName="1.8" jdkType="JavaSDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="Logic" />
+    <orderEntry type="module" module-name="UI" />
     <orderEntry type="module-library">
       <library>
         <CLASSES>
@@ -54,5 +55,6 @@
         <SOURCES />
       </library>
     </orderEntry>
+    <orderEntry type="library" name="src" level="project" />
   </component>
 </module>
