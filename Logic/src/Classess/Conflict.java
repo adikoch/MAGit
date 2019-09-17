@@ -1,21 +1,45 @@
 package Classess;
 
 import java.awt.image.ByteLookupTable;
+import java.nio.file.Path;
 
 public class Conflict {
 
-    String conflictName;
-//    Folder folderOfFile;
-    Blob our;
-    Blob their;
-    String pathInFolder;
-
-    public  Conflict(String conflict, Folder.Component ourIn, Folder.Component theirIn)
-    {
-conflictName = conflict;
-our = (Blob)ourIn.getDirectObject();
-their = (Blob)theirIn.getDirectObject();
-//pathInFolder = pathInFolderIn;
+    public String getConflictName() {
+        return conflictName;
     }
 
+    String conflictName;
+    //    Folder folderOfFile;
+    Folder.Component our;
+    Folder.Component their;
+
+    public Path getPathInFolder() {
+        return pathInFolder;
+    }
+
+    Path pathInFolder;
+    Folder.Component father;
+
+    public Folder.Component getOur() {
+        return our;
+    }
+
+    public Folder.Component getTheir() {
+        return their;
+    }
+
+    public Folder.Component getFather() {
+        return father;
+    }
+
+    public Conflict(String conflict, Folder.Component ourIn, Folder.Component theirIn, Folder.Component fatherIn, Path path) {
+        conflictName = conflict;
+        our =  ourIn;
+        their =  theirIn;
+        father = fatherIn;
+        pathInFolder = path;
+//pathInFolder = pathInFolderIn;
+    }
 }
+

@@ -12,19 +12,20 @@ public class Branch {
         private String branchName;
         private Commit pointedCommit;
         private  String pointedCommitSHA1="";
-
-        Boolean isTracking;
-        Boolean isRemote;
+        private Boolean isRemoteTrackingBranch;
+        private Boolean isRemoteBranch;
 
         //con
         Branch(String name)
         {
             branchName = name;
         }
-        Branch(String name, String commitSHA1)
+        Branch(String name, String commitSHA1,boolean isRemote,boolean isTracking)
         {
             branchName = name;
             pointedCommitSHA1 = commitSHA1;
+            isRemoteBranch = isRemote;
+            isRemoteTrackingBranch = isTracking;
         }
 
 
@@ -49,13 +50,15 @@ public class Branch {
                 Branch b = new Branch(c.getName());
                 if(commits.containsKey(c.getPointedCommit().getId())) {
                     b.setPointedCommit(commits.get(c.getPointedCommit().getId()));
+                    b.isRemoteBranch = c.isIsRemote();
+                    b.isRemoteTrackingBranch = c.isTracking();
                     newbranches.add(b);
                     b.setPointedCommitSHA1(commits.get(c.getPointedCommit().getId()).getSHA());
                 }
                 else
                 {
                     //return commit does not exist in xml
-                    throw new Exception("Commit does not exist in the xml");
+                    throw new Exception("Commit of branch does not exist in the xml");
 
                 }
             }

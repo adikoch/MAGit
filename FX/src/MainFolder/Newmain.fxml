@@ -32,6 +32,7 @@
                                 <MenuItem fx:id="ImportRepositoryFromXML" mnemonicParsing="false" onAction="#ImportRepFromXmlOnAction" text="Import Repository From XML" />
                                 <MenuItem fx:id="CreateEmptyRepository" mnemonicParsing="false" onAction="#CreateEmptyRepositoryOnAction" text="Create Empty Repository" />
                                 <MenuItem fx:id="SwitchRepository" mnemonicParsing="false" onAction="#SwitchRepositoryOnAction" text="Switch Repository" />
+                        <MenuItem fx:id="CloneRemoteReposoitory" mnemonicParsing="false" onAction="#CloneRemoteRepositoryOnAction" text="Clone Remote Repository" />
                             </items>
                         </Menu>
                         <Menu mnemonicParsing="false" text="Commit">
@@ -56,7 +57,7 @@
                     <items>
                         <Button mnemonicParsing="false" text="Push" />
                         <Button mnemonicParsing="false" text="Pull" />
-                        <Button mnemonicParsing="false" text="Fetch" />
+                        <Button fx:id="Fetch" mnemonicParsing="false" text="Fetch" />
                         <Button fx:id="merge" mnemonicParsing="false" onAction="#mergeTwoBranchesOnAction" text="Merge" />
                         <SplitMenuButton mnemonicParsing="false" text="Commit">
                             <items>

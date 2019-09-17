@@ -186,11 +186,8 @@ public class Runner {
                 } else isValid = true;
             }
         }//valid:
-        try {
             manager.CreatBranch(newBranchName);
-        } catch (IOException e) {
-            out.println("Reading text file failed");
-        }
+
     }
 
 

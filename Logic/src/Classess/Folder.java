@@ -36,7 +36,11 @@ public class Folder implements FileObject{
 
         private String Sha1;
         private String name;
+
+
+
         private String lastUpdater;
+
 
 
 
@@ -48,7 +52,7 @@ public class Folder implements FileObject{
 
             this.type = type;
             this.name = name;
-            this.lastUpdateDate = lastUpdateDate.toString();
+            this.lastUpdateDate = lastUpdateDate;
             this.Sha1 = sha1;
             this.lastUpdater = lastUpdater;
 
@@ -56,7 +60,12 @@ public class Folder implements FileObject{
 
 
         //get\set
-
+        public void setLastUpdateDate(String lastUpdateDate) {
+            this.lastUpdateDate = lastUpdateDate;
+        }
+        public void setLastUpdater(String lastUpdater) {
+            this.lastUpdater = lastUpdater;
+        }
         public String getLastUpdateDate() {
             return lastUpdateDate;
         }
@@ -65,7 +74,7 @@ public class Folder implements FileObject{
             return directObject;
         }
 
-        void setDirectObject(FileObject directObject) {
+        public void setDirectObject(FileObject directObject) {
             this.directObject = directObject;
         }
 
@@ -266,7 +275,14 @@ public class Folder implements FileObject{
             Collections.sort(folder.components);
         }
     }
-
+    public Folder.Component getComponentByName(String s)
+    {
+        for(Folder.Component c:this.getComponents()) {
+        if(c.getComponentName().equals(s))
+            return c;
+        }
+        return null;
+    }
 }
 //    public void exportToFile() // check if the sha1 exist
 //    {

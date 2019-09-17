@@ -4,6 +4,7 @@ import com.sun.xml.internal.ws.api.Component;
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
 import generated.*;
 
+import org.apache.commons.io.FileUtils;
 import puk.team.course.magit.ancestor.finder.AncestorFinder;
 import puk.team.course.magit.ancestor.finder.CommitRepresentative;
 import puk.team.course.magit.ancestor.finder.AncestorFinder;
@@ -30,6 +31,7 @@ public class GitManager {
 
     //members
     private Repository GITRepository;
+    private  Repository RemoteRepository;
     private String userName;
 
     //    private class diffLogClass {
@@ -41,7 +43,7 @@ public class GitManager {
     Map<String, Commit> commitTempMap;
     Map<String, Folder.Component> folderTempMap;
     Map<String, Folder.Component> blobTempMap;
-    HashMap<Conflict, Folder> conflictMap = new HashMap<>();
+  public HashMap<Conflict, Folder> conflictMap = new HashMap<>();
 
 
     //get\set
@@ -74,7 +76,7 @@ public class GitManager {
     }
 
 
-    static String generateSHA1FromString(String str) {
+   public static String generateSHA1FromString(String str) {
         return org.apache.commons.codec.digest.DigestUtils.sha1Hex(str);
     }
 
@@ -291,13 +293,13 @@ public class GitManager {
         return currentFolder;
     }
 
-    public void CreatBranch(String newBranchName) throws IOException {
+    public void CreatBranch(String newBranchName) {
         Path pathOfNewFile = Paths.get(getGITRepository().getRepositoryPath().toString() + "\\" + ".magit\\branches\\");
         String nameOfBranch = readTextFile(getGITRepository().getRepositoryPath().toString() + "\\" + ".magit\\branches\\Head");//name of main branch
         String sha1OfCurrCommit = readTextFile(getGITRepository().getRepositoryPath().toString() + "\\" + ".magit\\branches\\" + nameOfBranch);//sha1 of main commit
         createFile(newBranchName, sha1OfCurrCommit, pathOfNewFile, new Date().getTime());// a file created in branches
 
-        Branch newBranch = new Branch(newBranchName, GITRepository.getHeadBranch().getPointedCommit().getSHA());
+        Branch newBranch = new Branch(newBranchName, GITRepository.getHeadBranch().getPointedCommit().getSHA(),false,false);
         newBranch.setPointedCommit(GITRepository.getHeadBranch().getPointedCommit());//creating and initialising
 
         GITRepository.getBranches().add(newBranch);//adding to logic//not good
@@ -323,7 +325,7 @@ public class GitManager {
         new File(repPath + "\\.magit\\objects").mkdirs();
         new File(repPath + "\\.magit\\branches").mkdirs();
         Path workingPath = Paths.get(repPath + "\\");
-        this.GITRepository = new Repository(workingPath, new Branch("Master"),repName);
+        this.GITRepository = new Repository(workingPath, new Branch("Master"), repName);
         GITRepository.getHeadBranch().setPointedCommit(new Commit());
         //GITRepository.getHeadBranch().getPointedCommit().setRootfolder(workingPath.toString());
         GITRepository.getHeadBranch().getPointedCommit().setCommitFileContentToSHA();
@@ -360,7 +362,7 @@ public class GitManager {
         File name = Paths.get(newRepPath.toString() + "\\.magit\\RepName").toFile();
         String repname = readTextFile(name.getPath());
         GITRepository.setRepositoryName(repname);
-        this.GITRepository.getRepositorysBranchesObjects();
+        this.GITRepository.getRepositorysBranchesObjects(GITRepository.getRepositoryPath());
         GITRepository.Switch(newRepPath);
         GITRepository.setHeadBranch(GITRepository.getBranchByName(content));
 
@@ -369,6 +371,47 @@ public class GitManager {
 
 
     }
+
+    public void CloneRepository(String pathRemoteRep,String pathNewRep,String repName) throws Exception {
+        File f = Paths.get(pathRemoteRep + "\\.magit\\branches\\Head").toFile();//הקובץ הד
+        String headBranch = readTextFile(pathRemoteRep + "\\.magit\\branches\\" + f.getName());
+        this.GITRepository = new Repository(Paths.get(pathNewRep));
+
+        //repnames
+        File remoteRepName = Paths.get(pathRemoteRep + "\\.magit\\RepName").toFile();
+        String remoteName = readTextFile(pathRemoteRep + "\\.magit\\" + remoteRepName.getName());
+        GITRepository.setRepositoryRemoteName(remoteName);
+        GITRepository.setRepositoryName(repName);
+GITRepository.setRepositoryRemotePath(pathRemoteRep);
+        //ctreate logic
+        this.GITRepository.getRemoteRepositoryBranchesObjects(Paths.get(pathRemoteRep));
+        String s =   remoteName + "\\";
+        GITRepository.setHeadBranch(new Branch(headBranch,GITRepository.getBranchByName(s + headBranch).getPointedCommitSHA1(),false,true));
+        copyObjectsFiles(pathRemoteRep,pathNewRep);
+        getCommitForBranches();
+
+
+        //WC
+        createMagitFiles(false);
+
+        createFilesInWCFromCommitObject(GITRepository.getHeadBranch().getPointedCommit().getRootFolder(), GITRepository.getRepositoryPath());
+        createFile("RepName", GITRepository.getRepositoryName(), Paths.get(GITRepository.getRepositoryPath() + "\\.magit"), new Date().getTime());
+        createFile("RemoteRepName", GITRepository.getRepositoryRemoteName(), Paths.get(GITRepository.getRepositoryPath() + "\\.magit"), new Date().getTime());
+
+    }
+public void copyObjectsFiles(String pathRemoteRep,String pathNewRep)
+{
+    String BString = "\\.magit\\Objects\\";
+    File RemoteRep = new File(pathRemoteRep + BString);
+
+    File NewRep = new File(pathNewRep + BString);
+
+    try {
+        FileUtils.copyDirectory(RemoteRep, NewRep);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
 
 
     public boolean doesPathExist(String path) {
@@ -406,8 +449,11 @@ public class GitManager {
         for (Branch b : GITRepository.getBranches()) {
             //try{
             Commit newCommit =createCommitRec(b.getPointedCommitSHA1());
+            newCommit.setCommitFileContentToSHA();
             getGITRepository().getCommitMap().put(newCommit.getSHA(),newCommit);
-        //}
+            b.setPointedCommit(newCommit);
+
+            //}
             //catch(IOException e){}
 //
 //            Path commitPath = Paths.get(getGITRepository().getRepositoryPath().toString() + "\\.magit\\objects\\" + b.getPointedCommitSHA1() + ".zip");
@@ -432,7 +478,6 @@ public class GitManager {
 //            Commit newCommit = new Commit(st);//--זה יקרה כבר בתוך הרקורסיה של לבנות את המפת קומיטים השלמה
 ////כאן
 
-            b.setPointedCommit(newCommit);
             //GITRepository.getRepositoryName() = ךהחליף שם של רפוסיטורי
             //לא יצרנו קומיט שההד יצביע עליו כי אין צורך
 //            try {
@@ -441,9 +486,9 @@ public class GitManager {
 //                throw new IllegalArgumentException();
 //            }// was unable to generateFolderFromCommitObject
 //            b.getPointedCommit().setRootFolder(folder);
-            newCommit.setCommitFileContentToSHA();
+            //newCommit.setCommitFileContentToSHA();
             //br.close();
-            GITRepository.getCommitList().put(newCommit.getSHA(), newCommit);
+            //GITRepository.getCommitList().put(newCommit.getSHA(), newCommit);
             //מיותר כבר הוספנו למעלה
         }
     }
@@ -507,9 +552,11 @@ public class GitManager {
         Path ObjectPath = Paths.get(GITRepository.getRepositoryPath().toString() + "\\.magit\\Objects");
         String folderContent;
         Folder currentFolder;
-        try{folderContent= extractZipFile(Paths.get(ObjectPath + "\\" + rootFolderName + ".zip"));}
-        catch(IOException e)
-        {return new Folder(); }
+        try {
+            folderContent = extractZipFile(Paths.get(ObjectPath + "\\" + rootFolderName + ".zip"));
+        } catch (IOException e) {
+            return new Folder();
+        }
 
         currentFolder = new Folder();
         currentFolder.setComponents(currentFolder.setComponentsFromString(folderContent));
@@ -530,7 +577,7 @@ public class GitManager {
     }
 
 
-    private static void createFileInMagit(Object obj, Path path) throws Exception {//V
+    public static void createFileInMagit(Object obj, Path path) throws Exception {//V
         Path magitPath = Paths.get(path.toString() + "\\.magit");
         Path objectsPath = Paths.get(magitPath.toString() + "\\objects");
         Path branchesPath = Paths.get(magitPath.toString() + "\\branches");
@@ -827,6 +874,7 @@ public class GitManager {
 
             if (c.getComponentType().equals(FolderType.Blob)) {
                 Blob b = (Blob) c.getDirectObject();
+                if(b != null)
                 createFile(c.getComponentName(), b.getContent(), pathForFile, getDateFromString(c.getLastUpdateDate()));/////////////gbch,,,,,
             } else {
                 new File(pathForFile.toString() + "\\" + c.getComponentName()).mkdirs();
@@ -908,15 +956,19 @@ public class GitManager {
             }
             GITRepository = new Repository(Paths.get(oldRepository.getLocation()));
             convertOldRepoToNew(oldRepository);
+            GITRepository.setRepositoryRemoteName(oldRepository.getMagitRemoteReference().getName());
 
             if (Files.exists(Paths.get(oldRepository.getLocation())))//כבר קיים רפוזטורי כזה בעל אותו השם באותו המקום
             {
                 throw new IOException(oldRepository.getLocation());//go ask question, with the location, c:\repo1
             }
         }
-        createMagitFiles();
+        createMagitFiles(true);
         createFilesInWCFromCommitObject(GITRepository.getHeadBranch().getPointedCommit().getRootFolder(), GITRepository.getRepositoryPath());
         createFile("RepName", GITRepository.getRepositoryName(), Paths.get(GITRepository.getRepositoryPath() + "\\.magit"), new Date().getTime());
+        if(GITRepository.getRepositoryRemoteName() != null)
+        createFile("RemoteRepName", GITRepository.getRepositoryRemoteName(), Paths.get(GITRepository.getRepositoryPath() + "\\.magit"), new Date().getTime());
+
 
         this.userName = GITRepository.getHeadBranch().getPointedCommit().getChanger();
         this.blobTempMap.clear();
@@ -1028,24 +1080,28 @@ public class GitManager {
     }
 
 
-    public void createMagitFiles() throws Exception { //V
+    public void createMagitFiles(boolean isCreateObjects) throws Exception { //V
         new File(GITRepository.getRepositoryPath() + "\\.magit\\objects").mkdirs();
         new File(GITRepository.getRepositoryPath() + "\\.magit\\branches").mkdirs();
 
         try {
             createBranchesFiles();
         } catch (Exception e) {
-            throw new Exception("Could not creat branches folder");
+            throw new Exception("Could not create branches folder");
         }
-        try {
-            createObjectFiles();
-        } catch (Exception e) {
-            throw new Exception("Could not creat objects folder");
+        if(isCreateObjects) {
+            try {
+                createObjectFiles();
+            } catch (Exception e) {
+                throw new Exception("Could not create objects folder");
+            }
         }
     }
 
     public void createBranchesFiles() throws Exception {//V
         Path BranchesPath = Paths.get(GITRepository.getRepositoryPath().toString() + "\\.magit\\Branches");
+        if(GITRepository.getRepositoryRemoteName() != null)
+            new File(GITRepository.getRepositoryPath() + "\\.magit\\Branches\\" + GITRepository.getRepositoryRemoteName()).mkdirs();
         for (Branch b : GITRepository.getBranches()) {
             createFileInMagit(b, GITRepository.getRepositoryPath());
         }
@@ -1099,62 +1155,91 @@ public class GitManager {
 
         writer.close();
     }
-   public void merge(String theirBranchName) throws Exception {
-       String BranchesPath = GITRepository.getRepositoryPath() + "\\.magit\\branches\\";
-       String ObjectsPath = GITRepository.getRepositoryPath() + "\\.magit\\objects\\";
 
-       Branch their = getGITRepository().getBranchByName(theirBranchName);
-       //לבנות פולדר חדש
-       //לשנות הצבעה של ההד אליו
-       //לשנות ןןרקינד קופי
-       Folder mergedFolder = new Folder();
+    public Folder merge(String theirBranchName) throws Exception {
+        String BranchesPath = GITRepository.getRepositoryPath() + "\\.magit\\branches\\";
+        String ObjectsPath = GITRepository.getRepositoryPath() + "\\.magit\\objects\\";
+
+        Branch their = getGITRepository().getBranchByName(theirBranchName);
+        //לבנות פולדר חדש
+        //לשנות הצבעה של ההד אליו
+        //לשנות ןןרקינד קופי
+        Folder mergedFolder = new Folder();
         Folder oursFolder = getGITRepository().getHeadBranch().getPointedCommit().getRootFolder();
         Folder theirsFolder = getGITRepository().getBranchByName(theirBranchName).getPointedCommit().getRootFolder();
-       Function<String, CommitRepresentative> sha1ToCommit = s -> GITRepository.sha1ToCommit(s);
+        Function<String, CommitRepresentative> sha1ToCommit = s -> GITRepository.sha1ToCommit(s);
         AncestorFinder AF = new AncestorFinder(sha1ToCommit);
-        String fathersha1 = AF.traceAncestor(GITRepository.getHeadBranch().getPointedCommitSHA1(),their.getPointedCommitSHA1());
+        String fathersha1 = AF.traceAncestor(GITRepository.getHeadBranch().getPointedCommitSHA1(), their.getPointedCommitSHA1());
         Folder fatherFolder = GITRepository.getCommitMap().get(fathersha1).getRootFolder();// = traceAncestor
 
-       mergeBranches(oursFolder,theirsFolder,fatherFolder, mergedFolder );
-       deleteFilesInFolder(GITRepository.getRepositoryPath().toFile());
+        mergeBranches(GITRepository.getRepositoryPath(),oursFolder, theirsFolder, fatherFolder, mergedFolder);
+        return mergedFolder;
+//
+//        deleteFilesInFolder(GITRepository.getRepositoryPath().toFile());
+//
+////take care of commit
+//        Commit c = new Commit(description, userName);
+////       String anotherPrev = GITRepository.getHeadBranch().getPointedCommit().getSHA1PreveiousCommit();//האם יש עוד אבא
+////       if (anotherPrev != null) {
+////           c.setSHA1anotherPreveiousCommit(anotherPrev);
+////       }
+//        c.setSHA1PreveiousCommit(GITRepository.getHeadBranch().getPointedCommit().getSHA());
+//        c.setSHA1anotherPreveiousCommit(their.getPointedCommit().getSHA());
+//        c.setRootFolder(mergedFolder);
+//        c.setCommitFileContentToSHA();
+//        c.setRootFolderSHA1(generateSHA1FromString(mergedFolder.getFolderContentString()));
+//        GITRepository.getCommitList().put(c.getSHA(), c); //adding to commits list of the current reposetory
+//
+//        createFile(GITRepository.getHeadBranch().getBranchName(), c.getSHA(), Paths.get(BranchesPath), new Date().getTime());
+//        GITRepository.getHeadBranch().setPointedCommitSHA1(c.getSHA());
+//        GITRepository.getHeadBranch().setPointedCommit(c); //creation
+//
+//        createZipFile(Paths.get(ObjectsPath), generateSHA1FromString(mergedFolder.getFolderContentString()), mergedFolder.getFolderContentString());
+//
+//        createFileInMagit(GITRepository.getHeadBranch().getPointedCommit(), GITRepository.getRepositoryPath());
+//        createFilesInWCFromCommitObject(c.getRootFolder(), GITRepository.getRepositoryPath());
+//
+//        their.setPointedCommit(c);
+//        their.setPointedCommitSHA1(c.getSHA());
+    }
+
+    public void createFilesAfterMerge(String theirBranchName, String description,Folder mergedFolder) throws Exception {
+        String BranchesPath = GITRepository.getRepositoryPath() + "\\.magit\\branches\\";
+        String ObjectsPath = GITRepository.getRepositoryPath() + "\\.magit\\objects\\";
+
+        Branch their = getGITRepository().getBranchByName(theirBranchName);
+
+        deleteFilesInFolder(GITRepository.getRepositoryPath().toFile());
 
 //take care of commit
-       Commit c = new Commit("Merge of head and " + theirBranchName, userName);
+        Commit c = new Commit(description, userName);
 //       String anotherPrev = GITRepository.getHeadBranch().getPointedCommit().getSHA1PreveiousCommit();//האם יש עוד אבא
 //       if (anotherPrev != null) {
 //           c.setSHA1anotherPreveiousCommit(anotherPrev);
 //       }
-       c.setSHA1PreveiousCommit(GITRepository.getHeadBranch().getPointedCommit().getSHA());
-       c.setSHA1anotherPreveiousCommit(their.getPointedCommit().getSHA());
-       c.setRootFolder(mergedFolder);
-       c.setCommitFileContentToSHA();
-       c.setRootFolderSHA1(generateSHA1FromString(mergedFolder.getFolderContentString()));
-       GITRepository.getCommitList().put(c.getSHA(), c); //adding to commits list of the current reposetory
+        c.setSHA1PreveiousCommit(GITRepository.getHeadBranch().getPointedCommit().getSHA());
+        c.setSHA1anotherPreveiousCommit(their.getPointedCommit().getSHA());
+        c.setRootFolder(mergedFolder);
+        c.setCommitFileContentToSHA();
+        c.setRootFolderSHA1(generateSHA1FromString(mergedFolder.getFolderContentString()));
+        GITRepository.getCommitList().put(c.getSHA(), c); //adding to commits list of the current reposetory
 
-       createFile(GITRepository.getHeadBranch().getBranchName(), c.getSHA(),Paths.get(BranchesPath), new Date().getTime());
-       GITRepository.getHeadBranch().setPointedCommitSHA1(c.getSHA());
-       GITRepository.getHeadBranch().setPointedCommit(c); //creation
+        createFile(GITRepository.getHeadBranch().getBranchName(), c.getSHA(), Paths.get(BranchesPath), new Date().getTime());
+        GITRepository.getHeadBranch().setPointedCommitSHA1(c.getSHA());
+        GITRepository.getHeadBranch().setPointedCommit(c); //creation
 
-       createZipFile(Paths.get(ObjectsPath), generateSHA1FromString(mergedFolder.getFolderContentString()), mergedFolder.getFolderContentString());
+        createZipFile(Paths.get(ObjectsPath), generateSHA1FromString(mergedFolder.getFolderContentString()), mergedFolder.getFolderContentString());
 
-       createFileInMagit(GITRepository.getHeadBranch().getPointedCommit(), GITRepository.getRepositoryPath());
-       createFilesInWCFromCommitObject(c.getRootFolder(),GITRepository.getRepositoryPath());
-   }
+        createFileInMagit(GITRepository.getHeadBranch().getPointedCommit(), GITRepository.getRepositoryPath());
+        createFilesInWCFromCommitObject(c.getRootFolder(), GITRepository.getRepositoryPath());
 
-    public void mergeBranches(Folder oursFolder, Folder theirsFolder,Folder fatherFolder, Folder mergedFolder ) {
-        //getFather;
-        //Folder mergedFolder = new Folder();
+        their.setPointedCommit(c);
+        their.setPointedCommitSHA1(c.getSHA());
+    }
+
+    public void mergeBranches(Path path,Folder oursFolder, Folder theirsFolder, Folder fatherFolder, Folder mergedFolder) {
+
         mergedFolder.setComponents(new ArrayList<>());
-//        Folder oursFolder = our.getPointedCommit().getRootFolder();
-//        Folder theirsFolder = their.getPointedCommit().getRootFolder();
-        //Folder fatherFolder = new Folder();// = traceAncestor
-        String isOurExist = "0";
-        String isTheirExist = "0";
-        String isFatherExist = "0";
-        String isOEqualT = "0";
-        String isOEqualF = "0";
-        String isFEqualT = "0";
-
 
         ArrayList<Folder.Component> ourComponents = new ArrayList<>();
         ArrayList<Folder.Component> theirComponents = new ArrayList<>();
@@ -1164,149 +1249,324 @@ public class GitManager {
         int theirIndex = 0;
         int fatherIndex = 0;
 
+        if (oursFolder != null)
+            ourComponents = oursFolder.getComponents();
+        if (theirsFolder != null)
+            theirComponents = theirsFolder.getComponents();
+        if (fatherFolder != null)
+            fatherComponents = fatherFolder.getComponents();
 
-        ourComponents = oursFolder.getComponents();
-        theirComponents = theirsFolder.getComponents();
-        fatherComponents = fatherFolder.getComponents();
 
         //if (!ourComponents.isEmpty() && !theirComponents.isEmpty() && !fatherComponents.isEmpty()) {
 
 // indexes of the component in the lists
-        while (ourIndex < ourComponents.size() && theirIndex < theirComponents.size() && fatherIndex < fatherComponents.size()) { // while two folders are not empty
+        while (ourIndex < ourComponents.size() || theirIndex < theirComponents.size() || fatherIndex < fatherComponents.size()) { // while two folders are not empty
 
+            String isOurExist = "0";
+            String isTheirExist = "0";
+            String isFatherExist = "0";
+            String isOEqualT = "0";
+            String isOEqualF = "0";
+            String isFEqualT = "0";
             //לוודא שהאידקסים נכונים
             //לעשות בדיקה של מי הכי קטן
 
 //find min
-            String a = fatherComponents.get(fatherIndex).getComponentName();
-            FolderType type = fatherComponents.get(fatherIndex).getComponentType();
-
-            if (a.compareTo(ourComponents.get(ourIndex).getComponentName()) < 0) {
+            //find who is not null
+            String a = null;
+            FolderType type = null;
+            if (fatherIndex < fatherComponents.size()) {
+                a = fatherComponents.get(fatherIndex).getComponentName();
+                type = fatherComponents.get(fatherIndex).getComponentType();
+            } else if (theirIndex < theirComponents.size()) {
+                a = theirComponents.get(theirIndex).getComponentName();
+                type = theirComponents.get(theirIndex).getComponentType();
+            } else if (ourIndex < ourComponents.size()) {
                 a = ourComponents.get(ourIndex).getComponentName();
                 type = ourComponents.get(ourIndex).getComponentType();
             }
-            if (a.compareTo(theirComponents.get(theirIndex).getComponentName()) < 0) {
-                a = theirComponents.get(theirIndex).getComponentName();
-                type = theirComponents.get(theirIndex).getComponentType();
-            }
 
+            if (ourIndex < ourComponents.size()) {
+                if (a.compareTo(ourComponents.get(ourIndex).getComponentName()) > 0) {
+                    a = ourComponents.get(ourIndex).getComponentName();
+                    type = ourComponents.get(ourIndex).getComponentType();
+                }
+            }
+            if (theirIndex < theirComponents.size()) {
+                if (a.compareTo(theirComponents.get(theirIndex).getComponentName()) > 0) {
+                    a = theirComponents.get(theirIndex).getComponentName();
+                    type = theirComponents.get(theirIndex).getComponentType();
+                }
+            }
 
             //fill 3 bool
-            if (a.compareTo(fatherComponents.get(fatherIndex).getComponentName()) == 0) {
+            if (fatherIndex < fatherComponents.size() && a.compareTo(fatherComponents.get(fatherIndex).getComponentName()) == 0) {
                 isFatherExist = "1";
-                if (fatherComponents.get(fatherIndex).getComponentName().compareTo(ourComponents.get(ourIndex).getComponentName()) == 0) {
-                    isOurExist = "1";
-                 //   isOEqualF = "1";
+                if (ourIndex < ourComponents.size()) {
+                    if (fatherComponents.get(fatherIndex).getComponentName().compareTo(ourComponents.get(ourIndex).getComponentName()) == 0) {
+                        isOurExist = "1";
+                        //   isOEqualF = "1";
+                    }
                 }
-                if (fatherComponents.get(fatherIndex).getComponentName().compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
-                    isTheirExist = "1";
-               //     isFEqualT = "1";
+                if (theirIndex < theirComponents.size()) {
+                    if (fatherComponents.get(fatherIndex).getComponentName().compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
+                        isTheirExist = "1";
+                        //     isFEqualT = "1";
+                    }
                 }
-            }
-            if (a.compareTo(ourComponents.get(ourIndex).getComponentName()) == 0) {
+            } else if (ourIndex < ourComponents.size() && a.compareTo(ourComponents.get(ourIndex).getComponentName()) == 0) {
                 isOurExist = "1";
-                if (fatherComponents.get(fatherIndex).getComponentName().compareTo(ourComponents.get(ourIndex).getComponentName()) == 0) {
-                    isFatherExist = "1";
-                   // isOEqualF = "1";
-
+                if (fatherIndex < fatherComponents.size()) {
+                    if (fatherComponents.get(fatherIndex).getComponentName().compareTo(ourComponents.get(ourIndex).getComponentName()) == 0) {
+                        isFatherExist = "1";
+                        // isOEqualF = "1";
+                    }
                 }
-                if (ourComponents.get(ourIndex).getComponentName().compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
-                    isTheirExist = "1";
-                   // isOEqualT = "1";
-
+                if (theirIndex < theirComponents.size()) {
+                    if (ourComponents.get(ourIndex).getComponentName().compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
+                        isTheirExist = "1";
+                        // isOEqualT = "1";
+                    }
                 }
-            }
-            if (a.compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
+            } else if (theirIndex < theirComponents.size() && a.compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
                 isTheirExist = "1";
-                if (fatherComponents.get(fatherIndex).getComponentName().compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
-                    isFatherExist = "1";
-                   // isFEqualT = "1";
-
+                if (fatherIndex < fatherComponents.size()) {
+                    if (fatherComponents.get(fatherIndex).getComponentName().compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
+                        isFatherExist = "1";
+                        // isFEqualT = "1";
+                    }
                 }
-                if (ourComponents.get(ourIndex).getComponentName().compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
-                    isOurExist = "1";
-                   // isOEqualT = "1";
-
+                if (ourIndex < ourComponents.size()) {
+                    if (ourComponents.get(ourIndex).getComponentName().compareTo(theirComponents.get(theirIndex).getComponentName()) == 0) {
+                        isOurExist = "1";
+                        // isOEqualT = "1";
+                    }
                 }
             }
 
+            if (isFatherExist.equals("1") && isOurExist.equals("1")) {
+                if (ourComponents.get(ourIndex).getComponentSHA1().compareTo(fatherComponents.get(fatherIndex).getComponentSHA1()) == 0) {
+                    isOEqualF = "1";
+                }
+            }
+            if (isTheirExist.equals("1") && isOurExist.equals("1")) {
+                if (theirComponents.get(theirIndex).getComponentSHA1().compareTo(ourComponents.get(ourIndex).getComponentSHA1()) == 0) {
+                    isOEqualT = "1";
+                }
+            }
+            if (isTheirExist.equals("1") && isFatherExist.equals("1")) {
+                if (theirComponents.get(theirIndex).getComponentSHA1().compareTo(fatherComponents.get(fatherIndex).getComponentSHA1()) == 0)
+                    isFEqualT = "1";
+            }
 
-            if (ourComponents.get(ourIndex).getComponentSHA1().compareTo(fatherComponents.get(fatherIndex).getComponentSHA1()) == 0) {
-                isOEqualF = "1";
-            }
-            if (theirComponents.get(theirIndex).getComponentSHA1().compareTo(ourComponents.get(ourIndex).getComponentSHA1()) == 0) {
-                isOEqualT = "1";
-            }
-            if (theirComponents.get(theirIndex).getComponentSHA1().compareTo(fatherComponents.get(fatherIndex).getComponentSHA1()) == 0)
-                isFEqualT = "1";
-            if(type.equals(FolderType.Folder)) {
+            if (type.equals(FolderType.Folder)) {
                 Folder our = null;
                 Folder their = null;
                 Folder father = null;
                 if (isOurExist.equals("1")) {
-                    our =(Folder) ourComponents.get(ourIndex).getDirectObject();
+                    our = (Folder) ourComponents.get(ourIndex).getDirectObject();
                 }
                 if (isTheirExist.equals("1")) {
-                    their = (Folder)theirComponents.get(theirIndex).getDirectObject();
+                    their = (Folder) theirComponents.get(theirIndex).getDirectObject();
                 }
-                if(isFatherExist.equals("1")) {
-                    father = (Folder)fatherComponents.get(fatherIndex).getDirectObject();
+                if (isFatherExist.equals("1")) {
+                    father = (Folder) fatherComponents.get(fatherIndex).getDirectObject();
                 }
                 Folder newMergeFolder = new Folder();
-                mergeBranches(our,their,father,newMergeFolder);
+                mergeBranches(Paths.get(path +"\\" + a),our, their, father, newMergeFolder);
                 //check if there was no chnge- take our
+                if (their != null)
+                    if (generateSHA1FromString(newMergeFolder.getFolderContentString()).equals(generateSHA1FromString(their.getFolderContentString())))
+                        newMergeFolder = their;
+                if (father != null)
+                    if (generateSHA1FromString(newMergeFolder.getFolderContentString()).equals(generateSHA1FromString(father.getFolderContentString())))
+                        newMergeFolder = father;
+                if (our != null)
+                    if (generateSHA1FromString(newMergeFolder.getFolderContentString()).equals(generateSHA1FromString(our.getFolderContentString())))
+                        newMergeFolder = our;
 
-                if(generateSHA1FromString(newMergeFolder.getFolderContentString()).equals(generateSHA1FromString(their.getFolderContentString())))
-                    newMergeFolder = theirsFolder;
-                if(generateSHA1FromString(newMergeFolder.getFolderContentString()).equals(generateSHA1FromString(father.getFolderContentString())))
-                    newMergeFolder = fatherFolder;
-                if(generateSHA1FromString(newMergeFolder.getFolderContentString()).equals(generateSHA1FromString(our.getFolderContentString())))
-                    newMergeFolder = oursFolder;
-                Folder.Component c = new Folder.Component(a,generateSHA1FromString(newMergeFolder.getFolderContentString()), FolderType.Folder, userName, getDateFromObject(new Date()));
+                Folder.Component c = new Folder.Component(a, generateSHA1FromString(newMergeFolder.getFolderContentString()), FolderType.Folder, userName, getDateFromObject(new Date()));
                 c.setDirectObject(newMergeFolder);
+
+                if (theirIndex < theirComponents.size() && theirComponents.get(theirIndex).getDirectObject() == newMergeFolder) {
+                    c = theirComponents.get(theirIndex);
+                } else if (fatherIndex < fatherComponents.size() && fatherComponents.get(fatherIndex).getDirectObject() == newMergeFolder) {
+                    c = fatherComponents.get(fatherIndex);
+                } else if (ourIndex < ourComponents.size() && ourComponents.get(ourIndex).getDirectObject() == newMergeFolder) {
+                    c = ourComponents.get(ourIndex);
+                }
                 mergedFolder.getComponents().add(c);
+            } else {
+                MergeType enumForFun = getEnumFromString(isOurExist, isTheirExist, isFatherExist, isOEqualT, isOEqualF, isFEqualT);
+                MergeType e = MergeType.valueOf(enumForFun.toString().toUpperCase());
+                Folder.Component o = null;
+                Folder.Component t = null;
+                Folder.Component f = null;
+
+                if (ourIndex < ourComponents.size())
+                    o = ourComponents.get(ourIndex);
+
+                if (theirIndex < theirComponents.size())
+                    t = theirComponents.get(theirIndex);
+                if(fatherIndex < fatherComponents.size())
+                    f = fatherComponents.get(fatherIndex);
+                Folder.Component c = e.decideFile(path,conflictMap, o, t,f, mergedFolder);
+                    mergedFolder.getComponents().add(c);
+
             }
-            else {
-                MergeType e = MergeType.valueOf(isOurExist + isTheirExist + isFatherExist + isOEqualT + isOEqualF + isFEqualT);
-                Folder.Component c = e.decideFile(conflictMap, ourComponents.get(ourIndex), theirComponents.get(theirIndex), oursFolder);
-                mergedFolder.getComponents().add(c);
-            }
-            if(isFatherExist.equals("1"))
-            {
+            if (isFatherExist.equals("1")) {
                 fatherIndex++;
             }
-            if(isOurExist.equals("1"))
-            {
+            if (isOurExist.equals("1")) {
                 ourIndex++;
             }
-            if(isTheirExist.equals("1"))
-            {
+            if (isTheirExist.equals("1")) {
                 theirIndex++;
             }
+        }
+        if (theirsFolder != null)
+            if (generateSHA1FromString(mergedFolder.getFolderContentString()).equals(generateSHA1FromString(theirsFolder.getFolderContentString())))
+                mergedFolder = theirsFolder;
+        if (fatherFolder != null)
+            if (generateSHA1FromString(mergedFolder.getFolderContentString()).equals(generateSHA1FromString(fatherFolder.getFolderContentString())))
+                mergedFolder = fatherFolder;
+        if (oursFolder != null)
+            if (generateSHA1FromString(mergedFolder.getFolderContentString()).equals(generateSHA1FromString(oursFolder.getFolderContentString())))
+                mergedFolder = oursFolder;
+
+    }
+
+    public MergeType getEnumFromString(String isOurExist, String isTheirExist, String isFatherExist, String isOEqualT, String isOEqualF, String isFEqualT) {
+        String s = isOurExist + isTheirExist + isFatherExist + isOEqualT + isOEqualF + isFEqualT;
+        MergeType MT = null;
+        switch (s) {
+            case "001000":
+                MT = MergeType.A;
+                break;
+            case "010000":
+                MT = MergeType.B;
+                break;
+
+            case "011000":
+                MT = MergeType.C;
+                break;
+
+            case "011001":
+                MT = MergeType.D;
+                break;
+
+            case "100000":
+                MT = MergeType.E;
+                break;
+
+            case "101000":
+                MT = MergeType.F;
+                break;
+
+            case "101010":
+                MT = MergeType.G;
+                break;
+
+            case "110000":
+                MT = MergeType.H;
+                break;
+
+            case "110100":
+                MT = MergeType.I;
+                break;
+
+            case "111000":
+                MT = MergeType.J;
+                break;
+
+            case "111001":
+                MT = MergeType.K;
+                break;
+
+            case "111010":
+                MT = MergeType.L;
+                break;
+
+            case "111100":
+                MT = MergeType.M;
+                break;
+
+            case "111111":
+                MT = MergeType.N;
+                break;
+        }
+        return MT;
+    }
+
+    public ArrayList<String> getStringsForConflict(Conflict c) {
+        ArrayList<String> returnedList = new ArrayList<>();
+        returnedList.add(c.conflictName);
+        Blob b = (Blob)c.our.getDirectObject();
+            returnedList.add(b.getContent());
+            b = (Blob)c.their.getDirectObject();
+            returnedList.add(b.getContent());
+            b = (Blob)c.father.getDirectObject();
+            returnedList.add(b.getContent());
+            return  returnedList;
+        }
+    public void checkForEmptyFolders(Folder rootFolder) {
+        //
+        for (Folder.Component c : rootFolder.getComponents()) {
+            if(c.getComponentType().equals(FolderType.Folder))
+            {
+               // new File(pathForFile.toString() + "\\" + c.getComponentName()).mkdirs();
+                Folder f = (Folder) c.getDirectObject();
+                if(c.getDirectObject() == null)
+                {
+                    rootFolder.getComponents().remove(c);
+                }
+                else
+                checkForEmptyFolders(f);
+            }
+        }
+
+    }
+
+    public void executeFetch() throws Exception {
+        updatedBranchesToLR();
+        addNewObjects();
+
+    }
+    public void updatedBranchesToLR() throws Exception {
+        getGITRepository().addNewBranchesToLRInRep(Paths.get(GITRepository.getRepositoryRemotePath()));
+    }
+    public void addNewObjects() {
+        File local = new File(getGITRepository().getRepositoryPath().toString() + "\\.magit\\Objects");
+        File remote = new File(getGITRepository().getRepositoryRemotePath() + "\\.magit\\Objects");
+
+        mergeTwoDirectories(local, remote);}
+        //inbar nisoim
+
+        public void CreatBranchToCommit (String newBranchName, Commit newCommit)
+        {
+            Path pathOfNewFile = Paths.get(getGITRepository().getRepositoryPath().toString() + "\\" + ".magit\\branches\\");
+            String sha1OfCurrCommit = newCommit.getSHA();//sha1 of main commit
+            createFile(newBranchName, sha1OfCurrCommit, pathOfNewFile, new Date().getTime());// a file created in branches
+
+            Branch newBranch = new Branch(newBranchName, GITRepository.getHeadBranch().getPointedCommit().getSHA(),false,false);
+            newBranch.setPointedCommit(newCommit);//creating and initialising
+
+            GITRepository.getBranches().add(newBranch);//adding to logic//not good
         }
 
 
 
+    public static void mergeTwoDirectories(File local, File remote) {
+        String targetDirPath = local.getAbsolutePath();
+        File[] files = remote.listFiles();
+        for (File file : files) {
+            file.renameTo(new File(targetDirPath + "\\" + file.getName()));
+        }
     }
-
-    //inbar nisoim
-
-    public void CreatBranchToCommit(String newBranchName, Commit newCommit)
-    {
-        Path pathOfNewFile = Paths.get(getGITRepository().getRepositoryPath().toString() + "\\" + ".magit\\branches\\");
-        String sha1OfCurrCommit = newCommit.getSHA();//sha1 of main commit
-        createFile(newBranchName, sha1OfCurrCommit, pathOfNewFile, new Date().getTime());// a file created in branches
-
-        Branch newBranch = new Branch(newBranchName, GITRepository.getHeadBranch().getPointedCommit().getSHA());
-        newBranch.setPointedCommit(newCommit);//creating and initialising
-
-        GITRepository.getBranches().add(newBranch);//adding to logic//not good
-    }
-
-
 
 
 }
+
 
 //לתת אפשרות לעשות סוויץ רפוזטורי מתוך כלום
 //אם עושים סוויצ רפוזטורי פעולה 11 לא עובדת, יכול להיות בגלל 2 סיבות: או שאין קישור בין קומיט לאבא שלו באובייקט עצמו, או שבסווית רפוזטורי לא מעדכנות את ההד להצביע על הקומיט הנחוץעל הקומיט הנחוץ
