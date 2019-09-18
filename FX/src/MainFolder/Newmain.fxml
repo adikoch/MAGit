@@ -96,7 +96,7 @@
                                         <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
                                  <children>
                                     <TreeView fx:id="CommitText" prefHeight="154.0" prefWidth="415.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
-                                    <Label alignment="TOP_LEFT" layoutX="193.0" layoutY="-1.0" prefHeight="149.0" prefWidth="222.0" text="commit's info:" />
+                                    <Label alignment="TOP_LEFT" layoutX="193.0" layoutY="-1.0" prefHeight="149.0" prefWidth="222.0" />
                                      <Label fx:id="CommitInformation" layoutX="200.0" layoutY="31.0" text="Label" />
 
                                  </children></AnchorPane>

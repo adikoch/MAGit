@@ -53,9 +53,14 @@ public class CommitNodeController {
             }
         });
 
+        MenuItem deletePointingBranches= new MenuItem("Delete pointing branch");
+        deletePointingBranches.setOnAction((e->{
+            mainController.deletePointingBranches(commitNode.commitRelated);
+        }));
 
 
-        contextMenu.getItems().addAll(createNewPointingBranch, resetHeadBranchToThisCommit, mergePointingCommitWithHeadBranch);
+
+        contextMenu.getItems().addAll(createNewPointingBranch, resetHeadBranchToThisCommit, mergePointingCommitWithHeadBranch, deletePointingBranches);
 
         CommitCircle.addEventHandler(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
             @Override
@@ -104,24 +109,3 @@ public class CommitNodeController {
         this.mainController=mainController;
     }
 }
-
-
-/*
-          @Override
-            public void handle(MouseEvent event) {
-                if(event.getButton()==  MouseButton.PRIMARY)
-                {
-                    mainController.ShowCommitHierarchy(commitNode.commitRelated);
-                    mainController.showCommitsInfo(commitNode.commitRelated);
-                }
-
-                else
-                {
-                    contextMenu.show(CommitCircle, event.getScreenX(), event.getScreenY());
-                }
-        });
-
-
-        }
-    }
- */
