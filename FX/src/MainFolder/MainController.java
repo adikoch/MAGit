@@ -1558,14 +1558,14 @@ public class MainController implements Initializable {
     public void showCommitsInfo(Commit commit)
     {
         String showing;
-        showing= "commit's sha1: " + commit.getSHA() + "\n" +
-                "message: " + commit.getDescription() +  "\n" +
-                "commiter: " + commit.getChanger() + "\n" +
-                "creation date: " + commit.getCreationDate() + "\n" +
-                "prev commmit sha1: " + commit.getSHA1PreveiousCommit() + "\n" +
-                "prevprev commit sha1: " + commit.getSHA1anotherPreveiousCommit() + "\n" +
-                "delte according to prev commit(s): " + calculateDelta(commit) + "\n";
-        commitInfoP.setValue(showing);
+        showing= "Commit's sha1: " + commit.getSHA() + "\n" +
+                "Message: " + commit.getDescription() +  "\n" +
+                "Executed by: " + commit.getChanger() + "\n" +
+                "Creation date: " + commit.getCreationDate() + "\n" +
+                "Prev commit sha1: " + commit.getSHA1PreveiousCommit() + "\n" +
+                "Another prev commit sha1: " + commit.getSHA1anotherPreveiousCommit() + "\n" +
+                "Delta according to prev commit(s): " + calculateDelta(commit) + "\n";
+        commitInfoP.setValue("Commit's information:\n"+showing);
 
     }
 
@@ -1642,28 +1642,35 @@ public class MainController implements Initializable {
         }
 
         StringBuilder stringBuilder= new StringBuilder();
+        if (createdDelta.size()!=0 || deletedDelta.size()!=0 || deletedDelta.size()!=0)
+        {
+            stringBuilder.append(System.lineSeparator());
+            stringBuilder.append("Created files:");
+            stringBuilder.append(System.lineSeparator());
+            for (Path path : createdDelta)
+            {
+                stringBuilder.append(path.toString());
+                stringBuilder.append(System.lineSeparator());
+            }
+            stringBuilder.append("Deleted files:");
+            stringBuilder.append(System.lineSeparator());
+            for (Path path : deletedDelta)
+            {
+                stringBuilder.append(path.toString());
+                stringBuilder.append(System.lineSeparator());
+            }
+            stringBuilder.append("Updated files:");
+            stringBuilder.append(System.lineSeparator());
+            for (Path path : updatedDelta)
+            {
+                stringBuilder.append(path.toString());
+                stringBuilder.append(System.lineSeparator());
+            }
+            return stringBuilder.toString();
+        }
+        else return  "nothing changed";
 
-        for (Path path : manager.getCreatedFiles())
-        {
-            stringBuilder.append(path.toString());
-            stringBuilder.append(System.lineSeparator());
-        }
-        for (Path path : manager.getDeletedFiles())
-        {
-            stringBuilder.append(path.toString());
-            stringBuilder.append(System.lineSeparator());
-        }
-        for (Path path : manager.getUpdatedFiles())
-        {
-            stringBuilder.append(path.toString());
-            stringBuilder.append(System.lineSeparator());
-        }
 
-        if(commit.getSHA1PreveiousCommit()==null || commit.getSHA1anotherPreveiousCommit()==null)
-        {
-            return "nothing changed";
-        }
-        else return stringBuilder.toString();
 
 
         }
@@ -1672,7 +1679,6 @@ public class MainController implements Initializable {
 
 
 //    {
-//        //לעשות בדיוק מה שאקסקיוט קומיט עם ה0 עושה רק שעל שני האבות,לתוך רשימות חדשות שיכילו את זה, בין כל פעם לרוקן את הרשימות האמיתיות
 //
 //
 //        try {

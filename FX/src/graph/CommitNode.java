@@ -59,7 +59,7 @@ public class CommitNode extends AbstractCell {
         try {
 
             FXMLLoader fxmlLoader = new FXMLLoader();
-            URL url = getClass().getResource("/commitNode.fxml");
+            URL url = getClass().getResource("/graph/commitNode.fxml");
             fxmlLoader.setLocation(url);
             GridPane root = fxmlLoader.load(url.openStream());
 
