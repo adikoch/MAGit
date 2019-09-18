@@ -37,6 +37,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.ArrayList;
 
+import static java.lang.System.lineSeparator;
 import static java.lang.System.out;
 
 //import java.awt.*;
@@ -178,6 +179,7 @@ public class MainController implements Initializable {
         } catch (Exception e) {
             popUpMessage("could not execute commit");//***
         }
+        showGraph();
     }
 
 
@@ -594,6 +596,9 @@ public class MainController implements Initializable {
 
     @FXML
     public void SwitchRepositoryOnAction() {
+        CommitTree.setContent(null);
+        CommitText.setRoot(null);
+        commitInfoP.setValue(null);
         switchRepHelper(false, null);
     }
 
@@ -746,6 +751,7 @@ public class MainController implements Initializable {
             popUpMessage("Branch does not exist, please enter a name");
 
         }
+        showGraph();
     }
 
     public void solveConflicts(String fileName) throws IOException {
@@ -1312,6 +1318,7 @@ public class MainController implements Initializable {
 
         } else
             popUpMessage("The Head Branch is not a Temote Tracking Branch!");
+        showGraph();
     }
 
 //    @FXML
@@ -1636,10 +1643,11 @@ public class MainController implements Initializable {
 
     public String calculateDelta(Commit commit)
     {
-
+        boolean printing=false;
         LinkedList<Path> createdDelta=new LinkedList<>();
         LinkedList<Path> deletedDelta=new LinkedList<>();
         LinkedList<Path> updatedDelta=new LinkedList<>();
+        StringBuilder stringBuilder= new StringBuilder();
 
         if(commit.getSHA1PreveiousCommit()!=null) {
             Folder newFolder = commit.getRootFolder();
@@ -1652,20 +1660,56 @@ public class MainController implements Initializable {
 
             for (Path path : manager.getCreatedFiles()) {
                 createdDelta.add(path);
+                printing=true;
             }
             for (Path path : manager.getDeletedFiles()) {
                 deletedDelta.add(path);
+                printing=true;
+
             }
             for (Path path : manager.getUpdatedFiles()) {
                 updatedDelta.add(path);
+                printing=true;
+
             }
 
             manager.getCreatedFiles().clear();
             manager.getDeletedFiles().clear();
             manager.getUpdatedFiles().clear();
         }
-        if(commit.getSHA1anotherPreveiousCommit()!=null) {
 
+        if (createdDelta.size()!=0 || deletedDelta.size()!=0 || deletedDelta.size()!=0) {
+            stringBuilder.append(System.lineSeparator());
+            stringBuilder.append("from first prev commit:");
+            stringBuilder.append(System.lineSeparator());
+            stringBuilder.append("Created files:");
+            stringBuilder.append(System.lineSeparator());
+            for (Path path : createdDelta)
+            {
+                stringBuilder.append(path.toString());
+                stringBuilder.append(System.lineSeparator());
+            }
+            stringBuilder.append("Deleted files:");
+            stringBuilder.append(System.lineSeparator());
+            for (Path path : deletedDelta)
+            {
+                stringBuilder.append(path.toString());
+                stringBuilder.append(System.lineSeparator());
+            }
+            stringBuilder.append("Updated files:");
+            stringBuilder.append(System.lineSeparator());
+            for (Path path : updatedDelta)
+            {
+                stringBuilder.append(path.toString());
+                stringBuilder.append(System.lineSeparator());
+            }
+            deletedDelta.clear();
+            updatedDelta.clear();
+            createdDelta.clear();
+        }
+
+        if(commit.getSHA1anotherPreveiousCommit()!=null) {
+            stringBuilder.append("from second prev commit:");
             Folder newFolder = commit.getRootFolder();
             Folder oldFolder = manager.getGITRepository().getCommitMap().get(commit.getSHA1PreveiousCommit()).getRootFolder();
             try {
@@ -1674,39 +1718,26 @@ public class MainController implements Initializable {
                 e.printStackTrace();
             }
             for (Path path : manager.getCreatedFiles())
-                {createdDelta.add(path);}
-            for (Path path : manager.getDeletedFiles())
-                {deletedDelta.add(path);}
-            for (Path path : manager.getUpdatedFiles())
-                {updatedDelta.add(path);}
-
-            manager.getCreatedFiles().clear();
-            manager.getDeletedFiles().clear();
-            manager.getUpdatedFiles().clear();
-        }
-
-        if(commit.getSHA1anotherPreveiousCommit()!=null)
-        {
-            Folder newFolder = commit.getRootFolder();
-            Folder oldFolder = manager.getGITRepository().getCommitMap().get(commit.getSHA1anotherPreveiousCommit()).getRootFolder();
-            try {
-                manager.createShaAndZipForNewCommit(newFolder, oldFolder, false, manager.getGITRepository().getRepositoryPath());
-            } catch (IOException e) {
-                e.printStackTrace();
+            {
+                createdDelta.add(path);
+                printing=true;
             }
-            for (Path path : manager.getCreatedFiles())
-            {createdDelta.add(path);}
             for (Path path : manager.getDeletedFiles())
-            {deletedDelta.add(path);}
+            {
+                deletedDelta.add(path);
+                printing=true;
+            }
             for (Path path : manager.getUpdatedFiles())
-            {updatedDelta.add(path);}
+            {
+                updatedDelta.add(path);
+                printing=true;
+            }
 
             manager.getCreatedFiles().clear();
             manager.getDeletedFiles().clear();
             manager.getUpdatedFiles().clear();
         }
 
-        StringBuilder stringBuilder= new StringBuilder();
         if (createdDelta.size()!=0 || deletedDelta.size()!=0 || deletedDelta.size()!=0)
         {
             stringBuilder.append(System.lineSeparator());
@@ -1731,11 +1762,12 @@ public class MainController implements Initializable {
                 stringBuilder.append(path.toString());
                 stringBuilder.append(System.lineSeparator());
             }
-            return stringBuilder.toString();
         }
-        else return  "nothing changed";
+        if(!printing) return "nothing changed";
+        else return stringBuilder.toString();
 
-        }
+    }
+
 
     public void deletePointingBranches(Commit commit)
     {

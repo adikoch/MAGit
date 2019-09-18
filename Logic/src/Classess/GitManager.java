@@ -331,6 +331,7 @@ public class GitManager {
         //GITRepository.getHeadBranch().getPointedCommit().setRootfolder(workingPath.toString());
         GITRepository.getHeadBranch().getPointedCommit().setCommitFileContentToSHA();
         GITRepository.getHeadBranch().setPointedCommitSHA1(GITRepository.getHeadBranch().getPointedCommit().getSHA());
+        getGITRepository().getCommitMap().put(GITRepository.getHeadBranch().getPointedCommit().getSHA(),GITRepository.getHeadBranch().getPointedCommit());
         //Create commit file
 
         createFileInMagit(GITRepository.getHeadBranch().getPointedCommit(), workingPath);//commit
