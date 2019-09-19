@@ -109,8 +109,8 @@ public class MainController implements Initializable {
     public SimpleStringProperty RepositoryPAthP;
     //public SimpleObjectProperty BraanchesP;
     public SimpleStringProperty dynamicStatusContentP;
-    public SimpleStringProperty commitInfoP;
-
+    //public SimpleStringProperty commitInfoP;
+    public ScrollPane commitInfoP;
 
     public Stage primaryStage;
     public GitManager manager;
@@ -126,7 +126,8 @@ public class MainController implements Initializable {
 //        CommitTextP = new SimpleObjectProperty();
         CommitTextP = new SimpleObjectProperty();
         commitTreeG = new Graph();
-        commitInfoP = new SimpleStringProperty();
+        //commitInfoP = new SimpleStringProperty();
+        commitInfoP = new ScrollPane();
     }
 
     @Override
@@ -134,8 +135,8 @@ public class MainController implements Initializable {
         RepName.textProperty().bind(RepositoryNameP);
         RepPath.textProperty().bind(RepositoryPAthP);
         dynamicStatusContent.textProperty().bind(dynamicStatusContentP);
-        CommitInformation.textProperty().bind(commitInfoP);
-        //CommitText.().bind(CommitTextP);
+        //CommitInformation.textProperty().bind(commitInfoP);
+        commitInfoP.setContent(CommitInformation);
     }
 
     public void setPrimaryStage(Stage primaryStage) {
@@ -598,7 +599,7 @@ public class MainController implements Initializable {
     public void SwitchRepositoryOnAction() {
         CommitTree.setContent(null);
         CommitText.setRoot(null);
-        commitInfoP.setValue(null);
+        //commitInfoP.setValue(null);
         switchRepHelper(false, null);
     }
 
@@ -1234,6 +1235,8 @@ public class MainController implements Initializable {
             //כלומר קשת מהקומיט שלי אל ההורים
         }
 
+        //addBranchesToGraph(commitTreeG,mapOfNodes);
+
 
         commitTreeG.endUpdate();
         PannableCanvas canvas = commitTreeG.getCanvas();
@@ -1243,7 +1246,13 @@ public class MainController implements Initializable {
     }
 
 
-
+//    public void addBranchesToGraph(Graph graph, HashMap<String, ICell> mapOfNodes)
+//    {
+//        for(Branch b: manager.getGITRepository().getBranches())
+//        {
+//            mapOfNodes.get(b.getPointedCommitSHA1()).
+//        }
+//    }
 
 
 
@@ -1629,15 +1638,23 @@ public class MainController implements Initializable {
 
     public void showCommitsInfo(Commit commit)
     {
-        String showing;
-        showing= "Commit's sha1: " + commit.getSHA() + "\n" +
+//        String showing;
+//        showing= "Commit's sha1: " + commit.getSHA() + "\n" +
+//                "Message: " + commit.getDescription() +  "\n" +
+//                "Executed by: " + commit.getChanger() + "\n" +
+//                "Creation date: " + commit.getCreationDate() + "\n" +
+//                "Prev commit sha1: " + commit.getSHA1PreveiousCommit() + "\n" +
+//                "Another prev commit sha1: " + commit.getSHA1anotherPreveiousCommit() + "\n" +
+//                "Delta according to prev commit(s): " + calculateDelta(commit) + "\n";
+//        commitInfoP.setValue("Commit's information:\n"+showing);
+        Label showing= new Label("Commit's information:\n"+ "Commit's sha1: " + commit.getSHA() + "\n" +
                 "Message: " + commit.getDescription() +  "\n" +
                 "Executed by: " + commit.getChanger() + "\n" +
                 "Creation date: " + commit.getCreationDate() + "\n" +
                 "Prev commit sha1: " + commit.getSHA1PreveiousCommit() + "\n" +
                 "Another prev commit sha1: " + commit.getSHA1anotherPreveiousCommit() + "\n" +
-                "Delta according to prev commit(s): " + calculateDelta(commit) + "\n";
-        commitInfoP.setValue("Commit's information:\n"+showing);
+                "Delta according to prev commit(s): " + calculateDelta(commit) + "\n");
+        commitInfoP.setContent(showing);
 
     }
 
@@ -1707,6 +1724,7 @@ public class MainController implements Initializable {
             updatedDelta.clear();
             createdDelta.clear();
         }
+        else stringBuilder.append("nothing changed");
 
         if(commit.getSHA1anotherPreveiousCommit()!=null) {
             stringBuilder.append("from second prev commit:");

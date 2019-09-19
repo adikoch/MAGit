@@ -21,6 +21,7 @@ public class CommitNode extends AbstractCell {
     private String timestamp;
     private String committer;
     private String message;
+    public String branches="";
     private CommitNodeController commitNodeController= new CommitNodeController();
     public Commit commitRelated;
     public MainController mainController;
@@ -95,5 +96,10 @@ public class CommitNode extends AbstractCell {
     @Override
     public int hashCode() {
         return timestamp != null ? timestamp.hashCode() : 0;
+    }
+
+    public void setBranches(String branch){
+        branches= branches + branch;
+
     }
 }
